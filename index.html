@@ -7,17 +7,19 @@
     <!-- Google Fonts for Elegant Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;600&family=Playfair+Display:ital,wght@0,500;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,500;0,700;1,400&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --bg-color: #FAF4EE;
-            --card-bg: #FFFFFF;
-            --text-primary: #3B241C;
-            --rose-gold: #C0707B;
-            --rose-gold-light: #EBBAB9;
-            --sage-green: #8A9A86;
-            --accent-warm: #8C4347;
+            /* Updated Earthy Taupe / Tan Palette for High Contrast */
+            --bg-color: #F5EFEB;          /* Warm Taupe/Tan Background */
+            --card-bg: #FFFFFF;          /* Clean White Cards */
+            --text-primary: #3B241C;     /* Deep Espresso Text */
+            --text-muted: #4A3731;       /* Warm Dark Grayish Brown */
+            --rose-gold: #B06368;        /* Rich Warm Terracotta/Rose Gold */
+            --rose-gold-light: #DFB8B5;  /* Soft Warm Accent Border */
+            --sage-green: #73846F;       /* Earthy Sage Green */
+            --accent-warm: #8C4347;      /* Warm Deep Rose Accent */
             --shadow: 0 10px 30px rgba(59, 36, 28, 0.08);
         }
 
@@ -36,8 +38,8 @@
             display: flex;
             flex-direction: column;
             overflow-x: hidden;
-            /* Floral/Henna SVG background pattern */
-            background-image: radial-gradient(var(--rose-gold-light) 0.75px, transparent 0.75px), radial-gradient(var(--rose-gold-light) 0.75px, var(--bg-color) 0.75px);
+            /* Subtle Warm Dot Matrix Pattern */
+            background-image: radial-gradient(#D6C8C1 0.85px, transparent 0.85px), radial-gradient(#D6C8C1 0.85px, var(--bg-color) 0.85px);
             background-size: 30px 30px;
             background-position: 0 0, 15px 15px;
         }
@@ -48,7 +50,7 @@
             width: 250px;
             height: 250px;
             pointer-events: none;
-            opacity: 0.15;
+            opacity: 0.12;
             z-index: 0;
         }
         .motif-top-left { top: -40px; left: -40px; transform: rotate(0deg); }
@@ -56,13 +58,13 @@
 
         /* Header & Navigation */
         header {
-            background-color: rgba(250, 244, 238, 0.95);
+            background-color: rgba(245, 239, 235, 0.95);
             backdrop-filter: blur(8px);
             position: sticky;
             top: 0;
             z-index: 100;
-            border-bottom: 1px solid rgba(192, 112, 123, 0.2);
-            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(176, 99, 104, 0.2);
+            padding: 0.9rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -77,19 +79,19 @@
         }
 
         .brand-logo img {
-            width: 50px;
-            height: 50px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid var(--rose-gold);
         }
 
         .brand-title {
-            font-family: 'Great Vibes', cursive;
-            font-size: 2.2rem;
-            color: var(--accent-warm);
-            line-height: 1;
-            font-weight: 400;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            letter-spacing: 0.5px;
         }
 
         .nav-links {
@@ -157,11 +159,11 @@
             border-radius: 24px;
             padding: 3rem 2rem;
             box-shadow: var(--shadow);
-            border: 1px solid rgba(192, 112, 123, 0.15);
+            border: 1px solid rgba(176, 99, 104, 0.15);
             text-align: center;
             position: relative;
             overflow: hidden;
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
         }
 
         .hero-logo-large {
@@ -171,7 +173,7 @@
             object-fit: cover;
             margin-bottom: 1.5rem;
             border: 4px solid var(--rose-gold-light);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
         }
 
         .hero-title {
@@ -202,7 +204,7 @@
 
         .thank-you-badge {
             display: inline-block;
-            background: rgba(138, 154, 134, 0.15);
+            background: rgba(115, 132, 111, 0.12);
             color: var(--accent-warm);
             padding: 0.5rem 1.2rem;
             border-radius: 20px;
@@ -241,7 +243,7 @@
             border-radius: 20px;
             padding: 2rem;
             box-shadow: var(--shadow);
-            border: 1px solid rgba(192, 112, 123, 0.15);
+            border: 1px solid rgba(176, 99, 104, 0.15);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -307,7 +309,7 @@
             background-color: var(--rose-gold);
             color: white;
             border: none;
-            padding: 0.8rem;
+            padding: 0.85rem;
             border-radius: 12px;
             font-family: 'Montserrat', sans-serif;
             font-weight: 600;
@@ -329,7 +331,7 @@
             border-radius: 24px;
             padding: 2.5rem 2rem;
             box-shadow: var(--shadow);
-            border: 1px solid rgba(192, 112, 123, 0.15);
+            border: 1px solid rgba(176, 99, 104, 0.15);
             text-align: center;
             margin-top: 1rem;
         }
@@ -342,7 +344,7 @@
         }
 
         .contact-box {
-            background: rgba(250, 244, 238, 0.6);
+            background: rgba(245, 239, 235, 0.7);
             border: 2px solid var(--rose-gold-light);
             border-radius: 16px;
             padding: 1.5rem;
@@ -355,7 +357,7 @@
         .contact-icon {
             width: 50px;
             height: 50px;
-            background-color: rgba(192, 112, 123, 0.12);
+            background-color: rgba(176, 99, 104, 0.12);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -380,7 +382,7 @@
         .btn-contact-action {
             background-color: var(--sage-green);
             color: white;
-            padding: 0.6rem 1.2rem;
+            padding: 0.65rem 1.3rem;
             border-radius: 20px;
             text-decoration: none;
             font-size: 0.85rem;
@@ -401,7 +403,7 @@
             border-radius: 24px;
             padding: 2rem 1rem;
             box-shadow: var(--shadow);
-            border: 1px solid rgba(192, 112, 123, 0.15);
+            border: 1px solid rgba(176, 99, 104, 0.15);
             text-align: center;
             max-width: 1200px;
             margin: 0 auto;
@@ -416,7 +418,7 @@
         }
 
         .booking-tab-btn {
-            background: rgba(250, 244, 238, 0.8);
+            background: rgba(245, 239, 235, 0.8);
             border: 2px solid var(--rose-gold-light);
             color: var(--text-primary);
             padding: 0.7rem 1.4rem;
@@ -439,7 +441,7 @@
             min-height: 750px;
             border-radius: 12px;
             overflow: hidden;
-            border: 1px solid rgba(138, 154, 134, 0.3);
+            border: 1px solid rgba(115, 132, 111, 0.3);
             background: #ffffff;
         }
 
@@ -449,7 +451,7 @@
             border-radius: 24px;
             padding: 2.5rem 2rem;
             box-shadow: var(--shadow);
-            border: 1px solid rgba(192, 112, 123, 0.15);
+            border: 1px solid rgba(176, 99, 104, 0.15);
         }
 
         .gallery-grid {
@@ -551,7 +553,7 @@
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            background: rgba(250, 244, 238, 0.2);
+            background: rgba(245, 239, 235, 0.2);
             color: white;
             border: 1px solid rgba(255, 255, 255, 0.3);
             font-size: 1.5rem;
@@ -597,7 +599,7 @@
                 gap: 1rem;
             }
             .brand-title {
-                font-size: 1.8rem;
+                font-size: 1.05rem;
             }
             .hero-title {
                 font-size: 3rem;
@@ -615,10 +617,10 @@
 
     <!-- Background Decorative Motifs -->
     <svg class="henna-motif motif-top-left" viewBox="0 0 100 100">
-        <path fill="#C0707B" d="M50 0 C60 20 80 40 100 50 C80 60 60 80 50 100 C40 80 20 60 0 50 C20 40 40 20 50 0 Z"/>
+        <path fill="#B06368" d="M50 0 C60 20 80 40 100 50 C80 60 60 80 50 100 C40 80 20 60 0 50 C20 40 40 20 50 0 Z"/>
     </svg>
     <svg class="henna-motif motif-bottom-right" viewBox="0 0 100 100">
-        <path fill="#C0707B" d="M50 0 C60 20 80 40 100 50 C80 60 60 80 50 100 C40 80 20 60 0 50 C20 40 40 20 50 0 Z"/>
+        <path fill="#B06368" d="M50 0 C60 20 80 40 100 50 C80 60 60 80 50 100 C40 80 20 60 0 50 C20 40 40 20 50 0 Z"/>
     </svg>
 
     <!-- Header & Navigation -->
