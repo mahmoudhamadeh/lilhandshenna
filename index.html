@@ -299,6 +299,7 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             border: 2px solid var(--rose-gold-light);
             background-color: var(--bg-color);
+            cursor: pointer;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
@@ -323,6 +324,95 @@
             font-size: 1rem;
         }
 
+        /* Lightbox Fullscreen Modal */
+        .lightbox-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(30, 18, 14, 0.92);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.25s ease-in-out forwards;
+        }
+
+        .lightbox-modal.active {
+            display: flex;
+        }
+
+        .lightbox-content {
+            position: relative;
+            max-width: 90vw;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .lightbox-image {
+            max-width: 90vw;
+            max-height: 80vh;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border: 2px solid var(--rose-gold-light);
+            object-fit: contain;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: -45px;
+            right: 0;
+            color: #FFFFFF;
+            font-size: 2rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+
+        .lightbox-close:hover {
+            color: var(--rose-gold-light);
+        }
+
+        .lightbox-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(250, 244, 238, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 1.5rem;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .lightbox-btn:hover {
+            background: var(--rose-gold);
+            border-color: var(--rose-gold);
+        }
+
+        .lightbox-prev { left: 20px; }
+        .lightbox-next { right: 20px; }
+
+        .lightbox-counter {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            margin-top: 10px;
+            letter-spacing: 1px;
+        }
+
         /* Footer */
         footer {
             text-align: center;
@@ -344,6 +434,9 @@
             .booking-frame-container {
                 padding: 1.5rem 0.5rem;
             }
+            .lightbox-prev { left: 10px; }
+            .lightbox-next { right: 10px; }
+            .lightbox-btn { width: 40px; height: 40px; font-size: 1.1rem; }
         }
     </style>
 </head>
@@ -447,7 +540,7 @@
             <div class="gallery-container">
                 <div class="section-header" style="text-align: center;">
                     <h2>Design Gallery</h2>
-                    <p style="color: #666; font-size: 0.95rem;">A showcase of recent hand patterns, bridal elements, and party designs.</p>
+                    <p style="color: #666; font-size: 0.95rem;">A showcase of recent hand patterns, bridal elements, and party designs. Click any photo to expand!</p>
                 </div>
 
                 <div class="gallery-grid" id="gallery-grid">
@@ -457,6 +550,17 @@
         </section>
 
     </main>
+
+    <!-- Lightbox Fullscreen Modal -->
+    <div class="lightbox-modal" id="lightbox-modal" onclick="closeLightbox(event)">
+        <button class="lightbox-btn lightbox-prev" onclick="changeImage(-1, event)">&#10094;</button>
+        <div class="lightbox-content">
+            <button class="lightbox-close" onclick="closeLightbox(event)">&times;</button>
+            <img src="" alt="Enlarged Henna View" class="lightbox-image" id="lightbox-img">
+            <div class="lightbox-counter" id="lightbox-counter">1 / 1</div>
+        </div>
+        <button class="lightbox-btn lightbox-next" onclick="changeImage(1, event)">&#10095;</button>
+    </div>
 
     <!-- Footer -->
     <footer>
@@ -488,7 +592,7 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // Action trigger for clicks (Pushes to browser history stack)
+        // Action trigger for clicks
         function navigateTo(tabId) {
             window.location.hash = tabId;
         }
@@ -499,10 +603,13 @@
             renderTab(currentHash || 'home');
         });
 
-        // 2. Dynamic GitHub Gallery Fetcher
+        // 2. Dynamic GitHub Gallery & Lightbox Logic
         const GITHUB_USER = 'mahmoudhamadeh';
         const GITHUB_REPO = 'lilhandshenna';
         const IMAGES_FOLDER = 'images';
+
+        let galleryImagesList = [];
+        let currentImageIndex = 0;
 
         async function fetchGalleryImages() {
             const gridContainer = document.getElementById('gallery-grid');
@@ -528,10 +635,12 @@
                 }
 
                 gridContainer.innerHTML = '';
+                galleryImagesList = imageFiles.map(file => file.download_url);
 
-                imageFiles.forEach(file => {
+                imageFiles.forEach((file, index) => {
                     const card = document.createElement('div');
                     card.className = 'gallery-card';
+                    card.onclick = () => openLightbox(index);
 
                     const img = document.createElement('img');
                     img.src = file.download_url;
@@ -546,6 +655,46 @@
                 gridContainer.innerHTML = `<div class="gallery-empty">Upload your henna photos into an <strong>images</strong> folder in your GitHub repository to show them here!</div>`;
             }
         }
+
+        // Lightbox Modal Functions
+        function openLightbox(index) {
+            currentImageIndex = index;
+            updateLightboxView();
+            document.getElementById('lightbox-modal').classList.add('active');
+            document.body.style.overflow = 'hidden'; // Lock background scrolling
+        }
+
+        function closeLightbox(event) {
+            if (event) event.stopPropagation();
+            document.getElementById('lightbox-modal').classList.remove('active');
+            document.body.style.overflow = ''; // Restore background scrolling
+        }
+
+        function changeImage(direction, event) {
+            if (event) event.stopPropagation();
+            currentImageIndex += direction;
+            if (currentImageIndex < 0) currentImageIndex = galleryImagesList.length - 1;
+            if (currentImageIndex >= galleryImagesList.length) currentImageIndex = 0;
+            updateLightboxView();
+        }
+
+        function updateLightboxView() {
+            const imgElement = document.getElementById('lightbox-img');
+            const counterElement = document.getElementById('lightbox-counter');
+            
+            imgElement.src = galleryImagesList[currentImageIndex];
+            counterElement.textContent = `${currentImageIndex + 1} / ${galleryImagesList.length}`;
+        }
+
+        // Keyboard Controls for Lightbox (Esc, Left Arrow, Right Arrow)
+        document.addEventListener('keydown', (event) => {
+            const modal = document.getElementById('lightbox-modal');
+            if (modal.classList.contains('active')) {
+                if (event.key === 'Escape') closeLightbox();
+                if (event.key === 'ArrowLeft') changeImage(-1);
+                if (event.key === 'ArrowRight') changeImage(1);
+            }
+        });
 
         // Initial setup on load
         document.addEventListener('DOMContentLoaded', () => {
