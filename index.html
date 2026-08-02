@@ -291,23 +291,36 @@
             margin-top: 1.5rem;
         }
 
-        .gallery-item {
-            aspect-ratio: 1 / 1;
-            background-color: var(--bg-color);
+        .gallery-card {
+            position: relative;
             border-radius: 16px;
-            border: 2px dashed var(--rose-gold-light);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: var(--sage-green);
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
+            overflow: hidden;
+            aspect-ratio: 1 / 1;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 2px solid var(--rose-gold-light);
+            background-color: var(--bg-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .gallery-item:hover {
+        .gallery-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow);
             border-color: var(--rose-gold);
-            transform: scale(1.02);
+        }
+
+        .gallery-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .gallery-loading, .gallery-empty {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--sage-green);
+            font-size: 1rem;
         }
 
         /* Footer */
@@ -429,7 +442,7 @@
             </div>
         </section>
 
-        <!-- PAGE 3: GALLERY -->
+        <!-- PAGE 3: DYNAMIC GITHUB GALLERY -->
         <section id="gallery" class="page-section">
             <div class="gallery-container">
                 <div class="section-header" style="text-align: center;">
@@ -437,26 +450,8 @@
                     <p style="color: #666; font-size: 0.95rem;">A showcase of recent hand patterns, bridal elements, and party designs.</p>
                 </div>
 
-                <div class="gallery-grid">
-                    <!-- Photo Placeholders -->
-                    <div class="gallery-item">
-                        <span>[ Photo Placeholder 1 ]</span>
-                    </div>
-                    <div class="gallery-item">
-                        <span>[ Photo Placeholder 2 ]</span>
-                    </div>
-                    <div class="gallery-item">
-                        <span>[ Photo Placeholder 3 ]</span>
-                    </div>
-                    <div class="gallery-item">
-                        <span>[ Photo Placeholder 4 ]</span>
-                    </div>
-                    <div class="gallery-item">
-                        <span>[ Photo Placeholder 5 ]</span>
-                    </div>
-                    <div class="gallery-item">
-                        <span>[ Photo Placeholder 6 ]</span>
-                    </div>
+                <div class="gallery-grid" id="gallery-grid">
+                    <div class="gallery-loading">Loading Masa's latest designs...</div>
                 </div>
             </div>
         </section>
@@ -468,27 +463,75 @@
         <p>&copy; <script>document.write(new Date().getFullYear())</script> Little Hands Henna by Masa. All rights reserved.</p>
     </footer>
 
-    <!-- Interactive Navigation Script -->
+    <!-- Interactive Navigation & Gallery Script -->
     <script>
+        // 1. Navigation Tab Switching Logic
         function switchTab(tabId) {
-            // Hide all sections
             const sections = document.querySelectorAll('.page-section');
             sections.forEach(section => section.classList.remove('active'));
 
-            // Deactivate all nav buttons
             const navBtns = document.querySelectorAll('.nav-btn');
             navBtns.forEach(btn => btn.classList.remove('active'));
 
-            // Show selected section
             document.getElementById(tabId).classList.add('active');
 
-            // Activate current nav button
             const activeBtn = document.getElementById('btn-' + tabId);
-            if(activeBtn) activeBtn.classList.add('active');
+            if (activeBtn) activeBtn.classList.add('active');
 
-            // Scroll to top smoothly
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+
+        // 2. Dynamic GitHub Gallery Fetcher
+        const GITHUB_USER = 'mahmoudhamadeh';
+        const GITHUB_REPO = 'lilhandshenna';
+        const IMAGES_FOLDER = 'images';
+
+        async function fetchGalleryImages() {
+            const gridContainer = document.getElementById('gallery-grid');
+            const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${IMAGES_FOLDER}`;
+
+            try {
+                const response = await fetch(apiUrl);
+                
+                if (!response.ok) {
+                    throw new Error('Images folder not found or empty.');
+                }
+
+                const files = await response.json();
+                
+                // Filter for supported image extensions
+                const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+                const imageFiles = files.filter(file => 
+                    imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext))
+                );
+
+                if (imageFiles.length === 0) {
+                    gridContainer.innerHTML = '<div class="gallery-empty">No photos added yet. Upload images to the "images" folder on GitHub to display them here!</div>';
+                    return;
+                }
+
+                gridContainer.innerHTML = ''; // Clear loading state
+
+                imageFiles.forEach(file => {
+                    const card = document.createElement('div');
+                    card.className = 'gallery-card';
+
+                    const img = document.createElement('img');
+                    img.src = file.download_url;
+                    img.alt = 'Little Hands Henna Design';
+                    img.loading = 'lazy';
+
+                    card.appendChild(img);
+                    gridContainer.appendChild(card);
+                });
+
+            } catch (error) {
+                gridContainer.innerHTML = `<div class="gallery-empty">Upload your henna photos into an <strong>images</strong> folder in your GitHub repository to show them here!</div>`;
+            }
+        }
+
+        // Initialize Gallery on Page Load
+        document.addEventListener('DOMContentLoaded', fetchGalleryImages);
     </script>
 </body>
 </html>
