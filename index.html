@@ -359,25 +359,25 @@
 
     <!-- Header & Navigation -->
     <header>
-        <a href="#home" class="brand-logo" onclick="switchTab('home', true)">
+        <a href="#home" class="brand-logo" onclick="navigateTo('home'); return false;">
             <img src="logo.png" alt="Little Hands Henna Logo" id="nav-logo">
             <span class="brand-title">Little Hands Henna</span>
         </a>
         <ul class="nav-links">
             <li>
-                <button class="nav-btn active" id="btn-home" onclick="switchTab('home', true)">
+                <button class="nav-btn active" id="btn-home" onclick="navigateTo('home')">
                     <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
                     Home
                 </button>
             </li>
             <li>
-                <button class="nav-btn" id="btn-booking" onclick="switchTab('booking', true)">
+                <button class="nav-btn" id="btn-booking" onclick="navigateTo('booking')">
                     <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>
                     Book Appointment
                 </button>
             </li>
             <li>
-                <button class="nav-btn" id="btn-gallery" onclick="switchTab('gallery', true)">
+                <button class="nav-btn" id="btn-gallery" onclick="navigateTo('gallery')">
                     <svg viewBox="0 0 24 24"><path d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11-4l2.03 2.71L16 11l4 5H8l3-4zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z"/></svg>
                     Gallery
                 </button>
@@ -402,7 +402,7 @@
 
                 <!-- Visual Action Links to Sub-pages -->
                 <div class="action-cards">
-                    <div class="card-link" onclick="switchTab('booking', true)">
+                    <div class="card-link" onclick="navigateTo('booking')">
                         <div class="card-icon">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10z"/></svg>
                         </div>
@@ -410,7 +410,7 @@
                         <p style="font-size: 0.85rem; color: #666;">Reserve your date & time seamlessly online.</p>
                     </div>
 
-                    <div class="card-link" onclick="switchTab('gallery', true)">
+                    <div class="card-link" onclick="navigateTo('gallery')">
                         <div class="card-icon">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v16H4z" fill="none"/><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
                         </div>
@@ -463,10 +463,10 @@
         <p>&copy; <script>document.write(new Date().getFullYear())</script> Little Hands Henna by Masa. All rights reserved.</p>
     </footer>
 
-    <!-- Interactive Navigation & Gallery Script -->
+    <!-- Navigation & Gallery Script -->
     <script>
-        // 1. Browser-History-Aware Tab Switching Logic
-        function switchTab(tabId, updateHistory = false) {
+        // Tab display switcher
+        function renderTab(tabId) {
             const validTabs = ['home', 'booking', 'gallery'];
             if (!validTabs.includes(tabId)) tabId = 'home';
 
@@ -478,26 +478,25 @@
             const navBtns = document.querySelectorAll('.nav-btn');
             navBtns.forEach(btn => btn.classList.remove('active'));
 
-            // Activate target section
+            // Activate current section & button
             const targetSection = document.getElementById(tabId);
             if (targetSection) targetSection.classList.add('active');
 
-            // Activate target button
             const activeBtn = document.getElementById('btn-' + tabId);
             if (activeBtn) activeBtn.classList.add('active');
-
-            // Update browser location history (enables browser BACK/FORWARD)
-            if (updateHistory) {
-                history.pushState({ tab: tabId }, '', '#' + tabId);
-            }
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // Handle Browser Back / Forward Buttons
-        window.addEventListener('popstate', (event) => {
-            const hash = location.hash.replace('#', '');
-            switchTab(hash || 'home', false);
+        // Action trigger for clicks (Pushes to browser history stack)
+        function navigateTo(tabId) {
+            window.location.hash = tabId;
+        }
+
+        // Listen for browser hash changes (Back/Forward clicks)
+        window.addEventListener('hashchange', () => {
+            const currentHash = window.location.hash.replace('#', '');
+            renderTab(currentHash || 'home');
         });
 
         // 2. Dynamic GitHub Gallery Fetcher
@@ -550,11 +549,8 @@
 
         // Initial setup on load
         document.addEventListener('DOMContentLoaded', () => {
-            // Load initial tab based on URL hash (e.g. #booking or #gallery)
-            const initialHash = location.hash.replace('#', '');
-            switchTab(initialHash || 'home', false);
-
-            // Fetch gallery images
+            const initialHash = window.location.hash.replace('#', '');
+            renderTab(initialHash || 'home');
             fetchGalleryImages();
         });
     </script>
