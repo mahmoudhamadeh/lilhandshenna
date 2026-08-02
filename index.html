@@ -321,7 +321,7 @@
             background-color: var(--accent-warm);
         }
 
-        /* Page 2: Booking Frame (Cal.com Embed) */
+        /* Page 2: Booking Frame & Service Sub-Selector */
         .booking-frame-container {
             background: var(--card-bg);
             border-radius: 24px;
@@ -333,14 +333,31 @@
             margin: 0 auto;
         }
 
-        .section-header {
-            margin-bottom: 1.5rem;
+        .booking-selector {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
         }
 
-        .section-header h2 {
-            font-family: 'Playfair Display', serif;
-            color: var(--accent-warm);
-            font-size: 2rem;
+        .booking-tab-btn {
+            background: rgba(250, 244, 238, 0.8);
+            border: 2px solid var(--rose-gold-light);
+            color: var(--text-primary);
+            padding: 0.7rem 1.4rem;
+            border-radius: 25px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .booking-tab-btn:hover, .booking-tab-btn.active {
+            background-color: var(--rose-gold);
+            color: white;
+            border-color: var(--rose-gold);
         }
 
         .cal-embed-wrapper {
@@ -541,7 +558,7 @@
                 </button>
             </li>
             <li>
-                <button class="nav-btn" id="btn-booking" onclick="navigateTo('booking')">
+                <button class="nav-btn" id="btn-booking" onclick="navigateTo('booking-simple')">
                     <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>
                     Book Appointment
                 </button>
@@ -599,7 +616,7 @@
                             </ul>
                         </div>
                     </div>
-                    <button class="btn-service" onclick="navigateTo('booking')">Book Simple Design</button>
+                    <button class="btn-service" onclick="navigateTo('booking-simple')">Book Simple Design</button>
                 </div>
 
                 <!-- Service Card 2 -->
@@ -618,7 +635,7 @@
                             </ul>
                         </div>
                     </div>
-                    <button class="btn-service" onclick="navigateTo('booking')">Book Full Hand</button>
+                    <button class="btn-service" onclick="navigateTo('booking-detailed')">Book Full Hand</button>
                 </div>
 
                 <!-- Service Card 3 -->
@@ -637,24 +654,32 @@
                             </ul>
                         </div>
                     </div>
-                    <button class="btn-service" onclick="navigateTo('booking')">Reserve for Event</button>
+                    <button class="btn-service" onclick="navigateTo('booking-event')">Reserve for Event</button>
                 </div>
 
             </div>
 
         </section>
 
-        <!-- PAGE 2: BOOKING (CAL.COM EMBED) -->
+        <!-- PAGE 2: BOOKING FRAME WITH SERVICE SELECTOR -->
         <section id="booking" class="page-section">
             <div class="booking-frame-container">
                 <div class="section-header">
                     <h2>Book Your Henna Experience</h2>
-                    <p style="color: #666; font-size: 0.95rem;">Select an open slot below to secure your appointment with Masa.</p>
+                    <p style="color: #666; font-size: 0.95rem;">Select your desired service below to view open appointment slots with Masa.</p>
+                </div>
+
+                <!-- Sub-Service Selection Buttons -->
+                <div class="booking-selector">
+                    <button class="booking-tab-btn" id="b-btn-simple" onclick="navigateTo('booking-simple')">✨ Simple Design</button>
+                    <button class="booking-tab-btn" id="b-btn-detailed" onclick="navigateTo('booking-detailed')">✋ Full Hand Henna</button>
+                    <button class="booking-tab-btn" id="b-btn-event" onclick="navigateTo('booking-event')">🎉 Parties & Events</button>
                 </div>
 
                 <div class="cal-embed-wrapper">
                     <iframe 
-                        src="https://cal.com/lilhenna?embed=true" 
+                        id="cal-iframe"
+                        src="https://cal.com/lilhenna/simple?embed=true" 
                         width="100%" 
                         height="750" 
                         frameborder="0" 
@@ -699,25 +724,56 @@
 
     <!-- Navigation & Gallery Script -->
     <script>
+        // Dedicated Cal URLs Map
+        const CAL_URLS = {
+            'booking-simple': 'https://cal.com/lilhenna/simple?embed=true',
+            'booking-detailed': 'https://cal.com/lilhenna/detailed?embed=true',
+            'booking-event': 'https://cal.com/lilhenna/event?embed=true'
+        };
+
         // Tab display switcher
-        function renderTab(tabId) {
-            const validTabs = ['home', 'booking', 'gallery'];
-            if (!validTabs.includes(tabId)) tabId = 'home';
+        function renderTab(targetHash) {
+            let activePage = 'home';
+            let bookingSubtype = 'booking-simple';
+
+            if (targetHash.startsWith('booking')) {
+                activePage = 'booking';
+                bookingSubtype = CAL_URLS[targetHash] ? targetHash : 'booking-simple';
+            } else if (targetHash === 'gallery') {
+                activePage = 'gallery';
+            }
 
             // Hide all sections
             const sections = document.querySelectorAll('.page-section');
             sections.forEach(section => section.classList.remove('active'));
 
-            // Deactivate all nav buttons
+            // Deactivate header nav buttons
             const navBtns = document.querySelectorAll('.nav-btn');
             navBtns.forEach(btn => btn.classList.remove('active'));
 
-            // Activate current section & button
-            const targetSection = document.getElementById(tabId);
+            // Activate current section
+            const targetSection = document.getElementById(activePage);
             if (targetSection) targetSection.classList.add('active');
 
-            const activeBtn = document.getElementById('btn-' + tabId);
-            if (activeBtn) activeBtn.classList.add('active');
+            // Activate header nav button
+            const activeHeaderBtn = document.getElementById('btn-' + (activePage === 'booking' ? 'booking' : activePage));
+            if (activeHeaderBtn) activeHeaderBtn.classList.add('active');
+
+            // If on Booking page, switch iframe & highlight active booking sub-button
+            if (activePage === 'booking') {
+                const iframe = document.getElementById('cal-iframe');
+                if (iframe && iframe.src !== CAL_URLS[bookingSubtype]) {
+                    iframe.src = CAL_URLS[bookingSubtype];
+                }
+
+                // Deactivate sub-buttons
+                document.querySelectorAll('.booking-tab-btn').forEach(btn => btn.classList.remove('active'));
+                
+                // Activate sub-button
+                const subBtnId = bookingSubtype.replace('booking-', 'b-btn-');
+                const activeSubBtn = document.getElementById(subBtnId);
+                if (activeSubBtn) activeSubBtn.classList.add('active');
+            }
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -733,7 +789,7 @@
             renderTab(currentHash || 'home');
         });
 
-        // 2. Dynamic GitHub Gallery & Lightbox Logic
+        // Dynamic GitHub Gallery & Lightbox Logic
         const GITHUB_USER = 'mahmoudhamadeh';
         const GITHUB_REPO = 'lilhandshenna';
         const IMAGES_FOLDER = 'images';
