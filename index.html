@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Little Hands Henna by Masa</title>
+    <!-- Google Fonts for Elegant Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;600&family=Playfair+Display:ital,wght@0,500;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #FAF4EE;
+            --card-bg: #FFFFFF;
+            --text-primary: #3B241C;
+            --rose-gold: #C0707B;
+            --rose-gold-light: #EBBAB9;
+            --sage-green: #8A9A86;
+            --accent-warm: #8C4347;
+            --shadow: 0 10px 30px rgba(59, 36, 28, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            /* Floral/Henna SVG background pattern */
+            background-image: radial-gradient(var(--rose-gold-light) 0.75px, transparent 0.75px), radial-gradient(var(--rose-gold-light) 0.75px, var(--bg-color) 0.75px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+        }
+
+        /* Decorative Corner Henna Motifs */
+        .henna-motif {
+            position: fixed;
+            width: 250px;
+            height: 250px;
+            pointer-events: none;
+            opacity: 0.15;
+            z-index: 0;
+        }
+        .motif-top-left { top: -40px; left: -40px; transform: rotate(0deg); }
+        .motif-bottom-right { bottom: -40px; right: -40px; transform: rotate(180deg); }
+
+        /* Header & Navigation */
+        header {
+            background-color: rgba(250, 244, 238, 0.95);
+            backdrop-filter: blur(8px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(192, 112, 123, 0.2);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .brand-logo img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--rose-gold);
+        }
+
+        .brand-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            list-style: none;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background-color: var(--rose-gold);
+            color: white;
+        }
+
+        .nav-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        /* Container Main Body */
+        main {
+            max-width: 1200px;
+            width: 95%;
+            margin: 2rem auto;
+            flex: 1;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Page Section Visibility Toggle */
+        .page-section {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out forwards;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Page 1: Hero & Artist Intro */
+        .hero-card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 3rem 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(192, 112, 123, 0.15);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-logo-large {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 1.5rem;
+            border: 4px solid var(--rose-gold-light);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .hero-title {
+            font-family: 'Great Vibes', cursive;
+            font-size: 3.5rem;
+            color: var(--accent-warm);
+            line-height: 1.2;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-subtitle {
+            font-family: 'Playfair Display', serif;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            color: var(--sage-green);
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-description {
+            max-width: 650px;
+            margin: 0 auto 2.5rem;
+            color: #5A4036;
+            font-size: 1.05rem;
+        }
+
+        /* Action Cards / Sub-page Nav Buttons */
+        .action-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .card-link {
+            background: rgba(250, 244, 238, 0.6);
+            border: 2px solid var(--rose-gold-light);
+            border-radius: 16px;
+            padding: 1.8rem 1.5rem;
+            text-decoration: none;
+            color: var(--text-primary);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .card-link:hover {
+            transform: translateY(-5px);
+            background: #FFFFFF;
+            border-color: var(--rose-gold);
+            box-shadow: var(--shadow);
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(192, 112, 123, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            color: var(--accent-warm);
+        }
+
+        .card-link h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Page 2: Booking Frame (Dynamic Cal.com) */
+        .booking-frame-container {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 2rem 1rem;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(192, 112, 123, 0.15);
+            text-align: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-header h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--accent-warm);
+            font-size: 2rem;
+        }
+
+        #my-cal-inline {
+            width: 100%;
+            min-height: 700px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        /* Page 3: Gallery Grid */
+        .gallery-container {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 2.5rem 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(192, 112, 123, 0.15);
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .gallery-item {
+            aspect-ratio: 1 / 1;
+            background-color: var(--bg-color);
+            border-radius: 16px;
+            border: 2px dashed var(--rose-gold-light);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--sage-green);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .gallery-item:hover {
+            border-color: var(--rose-gold);
+            transform: scale(1.02);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            font-size: 0.85rem;
+            color: #7A6258;
+            margin-top: auto;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .hero-title {
+                font-size: 2.8rem;
+            }
+            .booking-frame-container {
+                padding: 1.5rem 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background Decorative Motifs -->
+    <svg class="henna-motif motif-top-left" viewBox="0 0 100 100">
+        <path fill="#C0707B" d="M50 0 C60 20 80 40 100 50 C80 60 60 80 50 100 C40 80 20 60 0 50 C20 40 40 20 50 0 Z"/>
+    </svg>
+    <svg class="henna-motif motif-bottom-right" viewBox="0 0 100 100">
+        <path fill="#C0707B" d="M50 0 C60 20 80 40 100 50 C80 60 60 80 50 100 C40 80 20 60 0 50 C20 40 40 20 50 0 Z"/>
+    </svg>
+
+    <!-- Header & Navigation -->
+    <header>
+        <a href="#" class="brand-logo" onclick="switchTab('home')">
+            <img src="logo.png" alt="Little Hands Henna Logo" id="nav-logo">
+            <span class="brand-title">Little Hands Henna</span>
+        </a>
+        <ul class="nav-links">
+            <li>
+                <button class="nav-btn active" id="btn-home" onclick="switchTab('home')">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                    Home
+                </button>
+            </li>
+            <li>
+                <button class="nav-btn" id="btn-booking" onclick="switchTab('booking')">
+                    <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>
+                    Book Appointment
+                </button>
+            </li>
+            <li>
+                <button class="nav-btn" id="btn-gallery" onclick="switchTab('gallery')">
+                    <svg viewBox="0 0 24 24"><path d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11-4l2.03 2.71L16 11l4 5H8l3-4zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z"/></svg>
+                    Gallery
+                </button>
+            </li>
+        </ul>
+    </header>
+
+    <!-- Main Content Area -->
+    <main>
+
+        <!-- PAGE 1: HOME & ARTIST INTRO -->
+        <section id="home" class="page-section active">
+            <div class="hero-card">
+                <img src="logo.png" alt="Little Hands Henna by Masa" class="hero-logo-large">
+                
+                <h1 class="hero-title">Little Hands Henna</h1>
+                <p class="hero-subtitle">by Masa — Beautiful Designs, Made with Care</p>
+                
+                <p class="hero-description">
+                    Welcome! I specialize in custom, organic Henna and Mehndi art for all occasions—from traditional celebratory patterns to delicate modern designs. Every piece is crafted with love and attention to detail.
+                </p>
+
+                <!-- Visual Action Links to Sub-pages -->
+                <div class="action-cards">
+                    <div class="card-link" onclick="switchTab('booking')">
+                        <div class="card-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10z"/></svg>
+                        </div>
+                        <h3>Book a Session</h3>
+                        <p style="font-size: 0.85rem; color: #666;">Reserve your date & time seamlessly online.</p>
+                    </div>
+
+                    <div class="card-link" onclick="switchTab('gallery')">
+                        <div class="card-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v16H4z" fill="none"/><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                        </div>
+                        <h3>Explore Designs</h3>
+                        <p style="font-size: 0.85rem; color: #666;">Browse our recent work and design styles.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 2: BOOKING (DYNAMIC CAL.COM EMBED) -->
+        <section id="booking" class="page-section">
+            <div class="booking-frame-container">
+                <div class="section-header">
+                    <h2>Book Your Henna Experience</h2>
+                    <p style="color: #666; font-size: 0.95rem;">Select an open slot below to secure your appointment with Masa.</p>
+                </div>
+
+                <!-- Dynamic Cal Inline Embed Container -->
+                <div id="my-cal-inline"></div>
+
+                <!-- Cal.com Embed JS Snippet -->
+                <script type="text/javascript">
+                  (function (C, A, L) { 
+                    let p = function (a, ar) { a.q.push(ar); }; 
+                    let l = C.Cal = C.Cal || function () { 
+                      let cal = l; 
+                      let arg = arguments; 
+                      if (!cal.q) { cal.q = []; } 
+                      if (typeof arg[0] === 'string') { 
+                        if (arg[0] === 'init') { 
+                          let api = function () { p(api, arguments); }; 
+                          let a = arg[1]; 
+                          if (cal[a]) { return cal[a]; } 
+                          cal[a] = api; 
+                          return api; 
+                        } 
+                        p(cal, arg); 
+                      } else { 
+                        p(cal, arg); 
+                      } 
+                    }; 
+                  })(window, "https://app.cal.com/embed/embed.js", "Cal");
+                  
+                  Cal("init", "lilhenna", {origin:"https://cal.com"});
+
+                  Cal("inline", {
+                    elementOrSelector: "#my-cal-inline",
+                    calLink: "lilhenna",
+                    layout: "month_view"
+                  });
+
+                  Cal("ui", {
+                    "styles": {
+                      "body": { "background": "transparent" },
+                      "branding": { "brandColor": "#C0707B" }
+                    },
+                    "hideEventTypeDetails": false,
+                    "layout": "month_view"
+                  });
+                </script>
+            </div>
+        </section>
+
+        <!-- PAGE 3: GALLERY -->
+        <section id="gallery" class="page-section">
+            <div class="gallery-container">
+                <div class="section-header" style="text-align: center;">
+                    <h2>Design Gallery</h2>
+                    <p style="color: #666; font-size: 0.95rem;">A showcase of recent hand patterns, bridal elements, and party designs.</p>
+                </div>
+
+                <div class="gallery-grid">
+                    <!-- Photo Placeholders -->
+                    <div class="gallery-item">
+                        <span>[ Photo Placeholder 1 ]</span>
+                    </div>
+                    <div class="gallery-item">
+                        <span>[ Photo Placeholder 2 ]</span>
+                    </div>
+                    <div class="gallery-item">
+                        <span>[ Photo Placeholder 3 ]</span>
+                    </div>
+                    <div class="gallery-item">
+                        <span>[ Photo Placeholder 4 ]</span>
+                    </div>
+                    <div class="gallery-item">
+                        <span>[ Photo Placeholder 5 ]</span>
+                    </div>
+                    <div class="gallery-item">
+                        <span>[ Photo Placeholder 6 ]</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; <script>document.write(new Date().getFullYear())</script> Little Hands Henna by Masa. All rights reserved.</p>
+    </footer>
+
+    <!-- Interactive Navigation Script -->
+    <script>
+        function switchTab(tabId) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.page-section');
+            sections.forEach(section => section.classList.remove('active'));
+
+            // Deactivate all nav buttons
+            const navBtns = document.querySelectorAll('.nav-btn');
+            navBtns.forEach(btn => btn.classList.remove('active'));
+
+            // Show selected section
+            document.getElementById(tabId).classList.add('active');
+
+            // Activate current nav button
+            const activeBtn = document.getElementById('btn-' + tabId);
+            if(activeBtn) activeBtn.classList.add('active');
+
+            // Scroll to top smoothly
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
