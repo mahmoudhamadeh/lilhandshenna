@@ -93,8 +93,9 @@
 
         .nav-links {
             display: flex;
-            gap: 1.5rem;
+            gap: 1rem;
             list-style: none;
+            flex-wrap: wrap;
         }
 
         .nav-btn {
@@ -231,7 +232,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 2rem;
-            margin-bottom: 2rem;
+            margin-bottom: 3rem;
         }
 
         .service-card {
@@ -318,6 +319,78 @@
         }
 
         .btn-service:hover {
+            background-color: var(--accent-warm);
+        }
+
+        /* Contact Us Section on Home */
+        .contact-card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 2.5rem 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(192, 112, 123, 0.15);
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .contact-box {
+            background: rgba(250, 244, 238, 0.6);
+            border: 2px solid var(--rose-gold-light);
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .contact-icon {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(192, 112, 123, 0.12);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.8rem;
+            color: var(--accent-warm);
+        }
+
+        .contact-box h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            color: var(--accent-warm);
+            margin-bottom: 0.4rem;
+        }
+
+        .contact-box p {
+            font-size: 0.95rem;
+            color: #5A4036;
+            margin-bottom: 1rem;
+        }
+
+        .btn-contact-action {
+            background-color: var(--sage-green);
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: background 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-contact-action:hover {
             background-color: var(--accent-warm);
         }
 
@@ -569,6 +642,12 @@
                     Gallery
                 </button>
             </li>
+            <li>
+                <button class="nav-btn" id="btn-contact" onclick="scrollToContact()">
+                    <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                    Contact
+                </button>
+            </li>
         </ul>
     </header>
 
@@ -657,6 +736,34 @@
                     <button class="btn-service" onclick="navigateTo('booking-event')">Reserve for Event</button>
                 </div>
 
+            </div>
+
+            <!-- Contact Section -->
+            <div class="contact-card" id="contact-section">
+                <h2 class="section-title" style="margin-bottom: 0.3rem;">Get in Touch</h2>
+                <p style="color: #666; font-size: 0.95rem;">Have questions or need a custom quote for your event? Reach out to us!</p>
+
+                <div class="contact-grid">
+                    <!-- Phone Contact -->
+                    <div class="contact-box">
+                        <div class="contact-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                        </div>
+                        <h3>Call or Text</h3>
+                        <p>+1 (705) 481-0484</p>
+                        <a href="tel:+17054810484" class="btn-contact-action">📞 Call Now</a>
+                    </div>
+
+                    <!-- Location / Address -->
+                    <div class="contact-box">
+                        <div class="contact-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                        </div>
+                        <h3>Studio Location</h3>
+                        <p>9 Amsterdam Dr, Barrie, ON L9J 0Z4</p>
+                        <a href="https://maps.app.goo.gl/eigz5NbZxkFYQB8h6" target="_blank" class="btn-contact-action">📍 Google Maps</a>
+                    </div>
+                </div>
             </div>
 
         </section>
@@ -781,6 +888,17 @@
         // Action trigger for clicks
         function navigateTo(tabId) {
             window.location.hash = tabId;
+        }
+
+        // Scroll to Contact section on Home page
+        function scrollToContact() {
+            if (!document.getElementById('home').classList.contains('active')) {
+                renderTab('home');
+            }
+            const contactElem = document.getElementById('contact-section');
+            if (contactElem) {
+                contactElem.scrollIntoView({ behavior: 'smooth' });
+            }
         }
 
         // Listen for browser hash changes (Back/Forward clicks)
