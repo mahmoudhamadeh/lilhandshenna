@@ -24,15 +24,16 @@ jobs:
         run: |
           cd images
 
-          # Extract 1st frame from any video files as a static .jpg thumbnail
+          # Loop through videos and create unique thumbnails (e.g. clip.mp4_thumb.jpg)
           for v in $(ls -1 | grep -iE '\.(mp4|mov|webm)$'); do
-            thumb_name="${v%.*}_thumb.jpg"
+            thumb_name="${v}_thumb.jpg"
             if [ ! -f "$thumb_name" ]; then
-              ffmpeg -i "$v" -ss 00:00:00.500 -vframes 1 "$thumb_name" -y
+              # Safe ffmpeg call with fallback suppression
+              ffmpeg -ss 00:00:00.500 -i "$v" -vframes 1 -q:v 2 "$thumb_name" -y || true
             fi
           done
 
-          # Build manifest ignoring manifest.json and auto-generated thumbs from listing
+          # Exclude manifest.json and thumbnail files from the listing
           ls -1 | grep -v 'manifest.json' | grep -v '_thumb.jpg' | grep -iE '\.(jpg|jpeg|png|webp|gif|mp4|mov|webm)$' | jq -R . | jq -s . > manifest.json
 
       - name: Commit and Push
