@@ -5,10 +5,15 @@ on:
     paths:
       - 'images/**'
       - '!images/manifest.json'
+      - '!images/*_thumb.jpg'
 
 concurrency:
   group: gallery-manifest-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
+
+defaults:
+  run:
+    working-directory: images
 
 jobs:
   build:
@@ -20,35 +25,43 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Generate Video Thumbnails & JSON Manifest
+      - name: Generate Video Thumbnails
         run: |
-          cd images
+          echo "=== Scanning for video files in $(pwd) ==="
           
-          shopt -s nullglob nocaseglob
-          
-          for v in *.mp4 *.mov *.webm; do
-            if [ -f "$v" ]; then
-              thumb_name="${v}_thumb.jpg"
-              echo "==> Found video: $v"
-              
-              if [ ! -f "$thumb_name" ]; then
-                echo "--> Generating thumbnail for $v..."
-                # Input FIRST (-i "$v"), then seek (-ss) for reliable mobile keyframe decoding
-                ffmpeg -i "$v" -ss 00:00:00.100 -vframes 1 -q:v 2 "$thumb_name" -y || ffmpeg -i "$v" -vframes 1 -q:v 2 "$thumb_name" -y || echo "ffmpeg failed for $v"
-              else
-                echo "--> Thumbnail already exists for $v"
-              fi
+          # Find all video files regardless of extension casing
+          find . -maxdepth 1 -type f \( -iname "*.mp4" -o -iname "*.mov" -o -iname "*.webm" \) | while read -r video_path; do
+            filename=$(basename "$video_path")
+            thumb_name="${filename}_thumb.jpg"
+            
+            echo "Processing: $filename"
+            
+            if [ ! -f "$thumb_name" ]; then
+              echo "--> Generating $thumb_name with ffmpeg..."
+              ffmpeg -y -i "$filename" -ss 00:00:00.500 -vframes 1 -q:v 2 "$thumb_name" || ffmpeg -y -i "$filename" -vframes 1 -q:v 2 "$thumb_name"
+            else
+              echo "--> Thumbnail $thumb_name already exists."
             fi
           done
-          
-          # Build manifest ignoring manifest.json and thumbnail files
+
+      - name: Generate JSON Manifest
+        run: |
+          echo "=== Generating manifest.json ==="
+          # List all media files, exclude manifest.json and _thumb.jpg files
           ls -1 | grep -v 'manifest.json' | grep -v '_thumb.jpg' | grep -iE '\.(jpg|jpeg|png|webp|gif|mp4|mov|webm)$' | jq -R . | jq -s . > manifest.json
+          cat manifest.json
 
       - name: Commit and Push
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          git add images/
-          git commit -m "auto: update gallery manifest & video thumbnails" || exit 0
+          # Stage manifest and all generated thumbnail images
+          git add manifest.json
+          git add *_thumb.jpg 2>/dev/null || true
+          
+          echo "=== Git Status before commit ==="
+          git status
+          
+          git commit -m "auto: update gallery manifest & video thumbnails [skip ci]" || exit 0
           git push
