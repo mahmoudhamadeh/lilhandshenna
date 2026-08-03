@@ -496,11 +496,37 @@
             border-color: #9E5257 !important;
         }
 
-        .gallery-card img {
+        .gallery-card img, .gallery-card video {
             width: 100%;
             height: 100%;
             object-fit: cover;
             display: block;
+        }
+
+        /* Video Overlay Play Badge on Card */
+        .video-badge {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 48px;
+            height: 48px;
+            background-color: rgba(61, 49, 46, 0.75);
+            color: #FFFFFF;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            border: 2px solid #D1B8B5;
+            transition: transform 0.3s ease, background 0.3s ease;
+        }
+
+        .gallery-card:hover .video-badge {
+            transform: translate(-50%, -50%) scale(1.15);
+            background-color: #9E5257;
         }
 
         .gallery-loading, .gallery-empty {
@@ -540,13 +566,18 @@
             align-items: center;
         }
 
-        .lightbox-image {
+        .lightbox-image, .lightbox-video {
             max-width: 90vw;
             max-height: 80vh;
             border-radius: 12px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.5);
             border: 2px solid #D1B8B5 !important;
             object-fit: contain;
+            display: none;
+        }
+
+        .lightbox-image.active, .lightbox-video.active {
+            display: block;
         }
 
         .lightbox-close {
@@ -820,12 +851,12 @@
             </div>
         </section>
 
-        <!-- PAGE 3: DYNAMIC GITHUB GALLERY -->
+        <!-- PAGE 3: DYNAMIC GITHUB GALLERY (PHOTOS & VIDEOS) -->
         <section id="gallery" class="page-section">
             <div class="gallery-container">
                 <div class="section-header" style="text-align: center;">
                     <h2>Design Gallery</h2>
-                    <p style="color: #524642; font-size: 0.95rem;">A showcase of recent hand patterns, bridal elements, and party designs. Click any photo to expand!</p>
+                    <p style="color: #524642; font-size: 0.95rem;">A showcase of recent hand patterns, bridal elements, and short videos. Click any item to expand!</p>
                 </div>
 
                 <div class="gallery-grid" id="gallery-grid">
@@ -841,7 +872,13 @@
         <button class="lightbox-btn lightbox-prev" onclick="changeImage(-1, event)">&#10094;</button>
         <div class="lightbox-content">
             <button class="lightbox-close" onclick="closeLightbox(event)">&times;</button>
+            
+            <!-- Image View element -->
             <img src="" alt="Enlarged Henna View" class="lightbox-image" id="lightbox-img">
+            
+            <!-- Video View element -->
+            <video src="" class="lightbox-video" id="lightbox-video" controls autoplay loop playsinline></video>
+            
             <div class="lightbox-counter" id="lightbox-counter">1 / 1</div>
         </div>
         <button class="lightbox-btn lightbox-next" onclick="changeImage(1, event)">&#10095;</button>
@@ -930,13 +967,13 @@
             renderTab(currentHash || 'home');
         });
 
-        // Dynamic GitHub Gallery & Lightbox Logic
+        // Dynamic GitHub Gallery & Lightbox Logic (Supports Photos & Videos)
         const GITHUB_USER = 'mahmoudhamadeh';
         const GITHUB_REPO = 'lilhandshenna';
         const IMAGES_FOLDER = 'images';
 
-        let galleryImagesList = [];
-        let currentImageIndex = 0;
+        let galleryMediaList = []; // Stores objects: { url, type: 'image'|'video' }
+        let currentMediaIndex = 0;
 
         async function fetchGalleryImages() {
             const gridContainer = document.getElementById('gallery-grid');
@@ -952,40 +989,68 @@
                 const files = await response.json();
                 
                 const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
-                const imageFiles = files.filter(file => 
-                    imageExtensions.some(ext => file.name.toLowerCase().endsWith(ext))
-                );
+                const videoExtensions = ['.mp4', '.mov', '.webm'];
 
-                if (imageFiles.length === 0) {
-                    gridContainer.innerHTML = '<div class="gallery-empty">No photos added yet. Upload images to the "images" folder on GitHub to display them here!</div>';
+                const mediaFiles = files.filter(file => {
+                    const lowerName = file.name.toLowerCase();
+                    return imageExtensions.some(ext => lowerName.endsWith(ext)) ||
+                           videoExtensions.some(ext => lowerName.endsWith(ext));
+                });
+
+                if (mediaFiles.length === 0) {
+                    gridContainer.innerHTML = '<div class="gallery-empty">No photos or videos added yet. Upload files to the "images" folder on GitHub to display them here!</div>';
                     return;
                 }
 
                 gridContainer.innerHTML = '';
-                galleryImagesList = imageFiles.map(file => file.download_url);
+                galleryMediaList = mediaFiles.map(file => {
+                    const lowerName = file.name.toLowerCase();
+                    const isVideo = videoExtensions.some(ext => lowerName.endsWith(ext));
+                    return {
+                        url: file.download_url,
+                        type: isVideo ? 'video' : 'image'
+                    };
+                });
 
-                imageFiles.forEach((file, index) => {
+                mediaFiles.forEach((file, index) => {
+                    const isVideo = videoExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
                     const card = document.createElement('div');
                     card.className = 'gallery-card';
                     card.onclick = () => openLightbox(index);
 
-                    const img = document.createElement('img');
-                    img.src = file.download_url;
-                    img.alt = 'Little Hands Henna Design';
-                    img.loading = 'lazy';
+                    if (isVideo) {
+                        const video = document.createElement('video');
+                        video.src = file.download_url + '#t=0.1'; // Loads first frame as poster
+                        video.preload = 'metadata';
+                        video.muted = true;
+                        video.playsInline = true;
 
-                    card.appendChild(img);
+                        const badge = document.createElement('div');
+                        badge.className = 'video-badge';
+                        badge.innerHTML = '▶';
+
+                        card.appendChild(video);
+                        card.appendChild(badge);
+                    } else {
+                        const img = document.createElement('img');
+                        img.src = file.download_url;
+                        img.alt = 'Little Hands Henna Design';
+                        img.loading = 'lazy';
+
+                        card.appendChild(img);
+                    }
+
                     gridContainer.appendChild(card);
                 });
 
             } catch (error) {
-                gridContainer.innerHTML = `<div class="gallery-empty">Upload your henna photos into an <strong>images</strong> folder in your GitHub repository to show them here!</div>`;
+                gridContainer.innerHTML = `<div class="gallery-empty">Upload your henna photos and MP4 videos into an <strong>images</strong> folder in your GitHub repository to show them here!</div>`;
             }
         }
 
         // Lightbox Modal Functions
         function openLightbox(index) {
-            currentImageIndex = index;
+            currentMediaIndex = index;
             updateLightboxView();
             document.getElementById('lightbox-modal').classList.add('active');
             document.body.style.overflow = 'hidden';
@@ -993,24 +1058,48 @@
 
         function closeLightbox(event) {
             if (event) event.stopPropagation();
+            const lightboxVideo = document.getElementById('lightbox-video');
+            lightboxVideo.pause(); // Stop video playback when closing
+            lightboxVideo.src = '';
+
             document.getElementById('lightbox-modal').classList.remove('active');
             document.body.style.overflow = '';
         }
 
         function changeImage(direction, event) {
             if (event) event.stopPropagation();
-            currentImageIndex += direction;
-            if (currentImageIndex < 0) currentImageIndex = galleryImagesList.length - 1;
-            if (currentImageIndex >= galleryImagesList.length) currentImageIndex = 0;
+            currentMediaIndex += direction;
+            if (currentMediaIndex < 0) currentMediaIndex = galleryMediaList.length - 1;
+            if (currentMediaIndex >= galleryMediaList.length) currentMediaIndex = 0;
             updateLightboxView();
         }
 
         function updateLightboxView() {
             const imgElement = document.getElementById('lightbox-img');
+            const videoElement = document.getElementById('lightbox-video');
             const counterElement = document.getElementById('lightbox-counter');
             
-            imgElement.src = galleryImagesList[currentImageIndex];
-            counterElement.textContent = `${currentImageIndex + 1} / ${galleryImagesList.length}`;
+            const currentMedia = galleryMediaList[currentMediaIndex];
+
+            // Pause previous video
+            videoElement.pause();
+
+            if (currentMedia.type === 'video') {
+                imgElement.classList.remove('active');
+                imgElement.src = '';
+
+                videoElement.src = currentMedia.url;
+                videoElement.classList.add('active');
+                videoElement.play().catch(() => {}); // Auto-play if allowed
+            } else {
+                videoElement.classList.remove('active');
+                videoElement.src = '';
+
+                imgElement.src = currentMedia.url;
+                imgElement.classList.add('active');
+            }
+
+            counterElement.textContent = `${currentMediaIndex + 1} / ${galleryMediaList.length}`;
         }
 
         // Keyboard Controls for Lightbox (Esc, Left Arrow, Right Arrow)
