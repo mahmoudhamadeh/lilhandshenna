@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'images/**'
+      - '!images/manifest.json'  # Prevents self-trigger loop when manifest.json is committed
 
 jobs:
   build:
@@ -17,8 +18,9 @@ jobs:
       - name: Generate JSON Manifest
         run: |
           cd images
-          # Find all media files and convert list to a clean JSON array
-          ls -1 | grep -E '\.(jpg|jpeg|png|webp|gif|mp4|mov|webm)$' | jq -R . | jq -s . > manifest.json
+          # Use grep -iE for case-insensitive extension matching (.JPG, .PNG, .MP4)
+          # Exclude manifest.json itself from the file list
+          ls -1 | grep -v 'manifest.json' | grep -iE '\.(jpg|jpeg|png|webp|gif|mp4|mov|webm)$' | jq -R . | jq -s . > manifest.json
 
       - name: Commit and Push Manifest
         run: |
