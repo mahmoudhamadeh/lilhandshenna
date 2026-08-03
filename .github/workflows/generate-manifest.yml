@@ -23,25 +23,32 @@ jobs:
       - name: Generate Video Thumbnails & JSON Manifest
         run: |
           cd images
-
-          # Find all video files safely (handles spaces and casing)
-          find . -maxdepth 1 -type f \( -iname "*.mp4" -o -iname "*.mov" -o -iname "*.webm" \) | while read -r video; do
-            filename=$(basename "$video")
-            thumb_name="${filename}_thumb.jpg"
-            
-            # Generate thumbnail at 0.5s if it doesn't already exist
-            if [ ! -f "$thumb_name" ]; then
-              ffmpeg -ss 00:00:00.500 -i "$filename" -vframes 1 -q:v 2 "$thumb_name" -y || true
+          
+          # Enable case-insensitive globbing
+          shopt -s nullglob nocaseglob
+          
+          # Loop through ALL existing video files in the images folder
+          for v in *.mp4 *.mov *.webm; do
+            if [ -f "$v" ]; then
+              thumb_name="${v}_thumb.jpg"
+              echo "Processing video: $v -> $thumb_name"
+              
+              # Force ffmpeg thumbnail creation
+              ffmpeg -y -ss 00:00:00.500 -i "$v" -vframes 1 -q:v 2 "$thumb_name" || true
             fi
           done
-
-          # Generate manifest excluding manifest.json and thumbnail images
+          
+          # Build manifest ignoring manifest.json and _thumb.jpg files
           ls -1 | grep -v 'manifest.json' | grep -v '_thumb.jpg' | grep -iE '\.(jpg|jpeg|png|webp|gif|mp4|mov|webm)$' | jq -R . | jq -s . > manifest.json
 
       - name: Commit and Push
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add images/
+          
+          # Explicitly add both manifest.json AND all generated _thumb.jpg files
+          git add images/manifest.json
+          git add images/*_thumb.jpg 2>/dev/null || true
+          
           git commit -m "auto: update gallery manifest & video thumbnails" || exit 0
           git push
