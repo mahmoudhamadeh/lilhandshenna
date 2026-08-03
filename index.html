@@ -498,7 +498,44 @@
             color: #423531;
             font-size: 1.05rem;
             line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Extracted Appointment Details Summary Card */
+        .details-summary-card {
+            background: #F4F1EF;
+            border: 2px solid #D1B8B5;
+            border-radius: 18px;
+            padding: 1.5rem;
             margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .details-summary-card h3 {
+            font-family: 'Playfair Display', serif;
+            color: #7C3A3E;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px dashed #D1B8B5;
+            padding-bottom: 0.5rem;
+        }
+
+        .summary-row {
+            display: flex;
+            margin-bottom: 0.8rem;
+            font-size: 0.95rem;
+        }
+
+        .summary-label {
+            font-weight: 700;
+            color: #5F705B;
+            width: 90px;
+            flex-shrink: 0;
+        }
+
+        .summary-value {
+            color: #2C221E;
+            flex-grow: 1;
         }
 
         .instructions-box {
@@ -939,14 +976,33 @@
             <div class="success-card">
                 <div class="success-icon">✨</div>
                 <h1 class="success-title">Booking Confirmed!</h1>
-                <p class="success-message">Your henna session with Masa has been successfully requested. We can't wait to create something beautiful for you!</p>
+                <p class="success-message">Your appointment with Masa has been successfully requested. We can't wait to create something beautiful for you!</p>
+
+                <!-- Extracted Cal Details Box -->
+                <div class="details-summary-card">
+                    <h3>Appointment Details</h3>
+                    
+                    <div class="summary-row">
+                        <div class="summary-label">What:</div>
+                        <div class="summary-value" id="summary-what">Henna Session</div>
+                    </div>
+
+                    <div class="summary-row">
+                        <div class="summary-label">When:</div>
+                        <div class="summary-value" id="summary-when">Confirmation details sent via email</div>
+                    </div>
+
+                    <div class="summary-row">
+                        <div class="summary-label">Where:</div>
+                        <div class="summary-value">9 Amsterdam Dr, Barrie, ON L9J 0Z4</div>
+                    </div>
+                </div>
 
                 <div class="instructions-box">
                     <h4>Important Session Instructions:</h4>
                     <ul>
                         <li><strong>Confirmation Email:</strong> A calendar invitation and confirmation summary have been sent to your email address.</li>
                         <li><strong>Skin Prep:</strong> Please ensure your skin is clean and dry before your session (avoid applying heavy body lotions or oils beforehand).</li>
-                        <li><strong>Studio Location:</strong> 9 Amsterdam Dr, Barrie, ON L9J 0Z4.</li>
                         <li><strong>Need to reschedule?</strong> You can modify or reschedule your time slot anytime using the link inside your confirmation email.</li>
                     </ul>
                 </div>
@@ -1039,7 +1095,6 @@
             if (activePage === 'booking') {
                 const iframe = document.getElementById('cal-iframe');
                 if (iframe) {
-                    // Always reload URL when opening booking tab so previous completed screens disappear
                     iframe.src = CAL_URLS[bookingSubtype];
                 }
 
@@ -1072,6 +1127,55 @@
             }
         }
 
+        // Format Date String from Cal payload
+        function formatBookingTime(startTimeStr, endTimeStr) {
+            if (!startTimeStr) return 'Details sent via email';
+
+            try {
+                const startDate = new Date(startTimeStr);
+                const endDate = endTimeStr ? new Date(endTimeStr) : null;
+
+                const optionsDate = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const datePart = startDate.toLocaleDateString('en-US', optionsDate);
+
+                const optionsTime = { hour: 'numeric', minute: '2-digit', hour12: true };
+                const startTimePart = startDate.toLocaleTimeString('en-US', optionsTime);
+                const endTimePart = endDate ? endDate.toLocaleTimeString('en-US', optionsTime) : '';
+
+                return `${datePart}<br>${startTimePart} ${endTimePart ? '- ' + endTimePart : ''}`;
+            } catch (err) {
+                return startTimeStr;
+            }
+        }
+
+        // Extract Cal.com booking data from postMessage
+        function updateSummaryDetails(data) {
+            let what = 'Henna Session';
+            let when = 'Confirmation details sent via email';
+
+            if (data) {
+                const payload = data.data || data.detail || data;
+                
+                if (payload.title || payload.type || payload.eventType) {
+                    what = payload.title || payload.type || payload.eventType.title || 'Henna Session';
+                    // Clean up title text if Cal appends host names
+                    what = what.replace(/ between .*/i, '');
+                }
+
+                if (payload.startTime || payload.start) {
+                    const start = payload.startTime || payload.start;
+                    const end = payload.endTime || payload.end;
+                    when = formatBookingTime(start, end);
+                }
+            }
+
+            const whatElem = document.getElementById('summary-what');
+            const whenElem = document.getElementById('summary-when');
+
+            if (whatElem) whatElem.textContent = what;
+            if (whenElem) whenElem.innerHTML = when;
+        }
+
         // Listen for Cal.com Embed "bookingSuccessful" postMessage event
         window.addEventListener('message', function(e) {
             if (e.origin.includes('cal.com')) {
@@ -1082,6 +1186,9 @@
                 }
 
                 if (data && (data.type === 'bookingSuccessful' || data.action === 'bookingSuccessful' || (data.detail && data.detail.action === 'bookingSuccessful'))) {
+                    // Extract payload details and update summary card
+                    updateSummaryDetails(data);
+
                     // 1. Trigger Google Ads / Analytics Conversion
                     triggerBookingConversion();
 
