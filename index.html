@@ -1305,20 +1305,22 @@
             window.location.hash = tabId;
         }
 
-        // Trigger Google Analytics / Ads Conversion Event
-        function triggerBookingConversion() {
-            if (typeof gtag === 'function') {
-                gtag('event', 'conversion', {
-                    'send_to': 'G-N1WTEHTLY6',
-                    'event_category': 'Booking',
-                    'event_label': 'Henna Appointment Completed'
-                });
-                gtag('event', 'booking_complete', {
-                    'page_location': window.location.href
-                });
-            }
-        }
+// Trigger Google Analytics / Ads Conversion Event
+function triggerBookingConversion() {
+    if (typeof gtag === 'function') {
+        // Direct Google Ads Conversion Event
+        gtag('event', 'conversion', {
+            'send_to': 'AW-18347276057/Tn20CKj5ktscEJnu1KxE',
+            'value': 1.0,
+            'currency': 'CAD'
+        });
 
+        // Custom GA4 Event
+        gtag('event', 'booking_complete', {
+            'page_location': window.location.href
+        });
+    }
+}
         // Format Date String from Cal payload
         function formatBookingTime(startTimeStr, endTimeStr) {
             if (!startTimeStr) return 'Confirmation details sent via email';
