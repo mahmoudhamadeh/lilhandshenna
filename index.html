@@ -180,7 +180,7 @@
             text-align: center;
             position: relative;
             overflow: hidden;
-            margin-bottom: 2.5rem;
+            margin-bottom: 2rem;
         }
 
         .hero-logo-large {
@@ -229,6 +229,92 @@
             font-weight: 600;
             margin-top: 0.5rem;
             border: 1px dashed #5F705B !important;
+        }
+
+        /* Home Page Mini Carousel Section */
+        .mini-gallery-card {
+            background: #FFFFFF !important;
+            border-radius: 20px;
+            padding: 1.8rem 1.5rem;
+            box-shadow: 0 10px 30px rgba(44, 34, 30, 0.08) !important;
+            border: 1px solid rgba(158, 82, 87, 0.2) !important;
+            margin-bottom: 2.5rem;
+            text-align: center;
+        }
+
+        .mini-gallery-title {
+            font-family: 'Playfair Display', serif !important;
+            color: #7C3A3E !important;
+            font-size: 1.5rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .mini-gallery-sub {
+            color: #5F705B !important;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1.2rem;
+        }
+
+        .carousel-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .carousel-arrow {
+            background: #F4F1EF !important;
+            border: 2px solid #D1B8B5 !important;
+            color: #7C3A3E !important;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            user-select: none;
+        }
+
+        .carousel-arrow:hover {
+            background-color: #9E5257 !important;
+            color: white !important;
+            border-color: #9E5257 !important;
+        }
+
+        .mini-gallery-track {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.8rem;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .mini-thumb-card {
+            aspect-ratio: 1 / 1;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid #D1B8B5;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+            background-color: #E0DCDA;
+        }
+
+        .mini-thumb-card:hover {
+            transform: translateY(-3px);
+            border-color: #9E5257 !important;
+        }
+
+        .mini-thumb-card img, .mini-thumb-card video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
 
         /* Services Grid Section */
@@ -772,6 +858,9 @@
             .hero-title {
                 font-size: 3rem !important;
             }
+            .mini-gallery-track {
+                grid-template-columns: repeat(3, 1fr);
+            }
             .booking-frame-container {
                 padding: 1.5rem 0.5rem;
             }
@@ -844,6 +933,21 @@
 
                 <div class="thank-you-badge">
                     ✨ Thank you for supporting a young entrepreneur! ✨
+                </div>
+            </div>
+
+            <!-- Home Page Mini Gallery Carousel -->
+            <div class="mini-gallery-card">
+                <h3 class="mini-gallery-title">Recent Design Showcase</h3>
+                <p class="mini-gallery-sub">Click any photo or video to view in full screen!</p>
+                
+                <div class="carousel-wrapper">
+                    <button class="carousel-arrow" onclick="shiftMiniCarousel(-1)">&#10094;</button>
+                    <div class="mini-gallery-track" id="mini-gallery-track">
+                        <!-- Loaded dynamically via JS -->
+                        <div style="grid-column: 1 / -1; color: #5F705B;">Loading showcase...</div>
+                    </div>
+                    <button class="carousel-arrow" onclick="shiftMiniCarousel(1)">&#10095;</button>
                 </div>
             </div>
 
@@ -1068,6 +1172,7 @@
         };
 
         let currentActiveSubtype = 'booking-simple';
+        let miniCarouselOffset = 0;
 
         // Tab display switcher
         function renderTab(targetHash) {
@@ -1179,18 +1284,15 @@
 
         // Extract Cal.com booking data from postMessage
         function updateSummaryDetails(data) {
-            // Default to the service card the customer clicked on
             let what = SERVICE_NAMES[currentActiveSubtype] || 'Henna Session';
             let when = 'Confirmation details sent via email';
 
             if (data) {
-                // Try extracting event/service title from nested data
                 const extractedTitle = findValKey(data, ['title', 'eventTitle', 'eventType', 'name']);
                 if (extractedTitle) {
                     what = extractedTitle.replace(/ between .*/i, '');
                 }
 
-                // Search for start & end timestamps across nested payload
                 const startTime = findValKey(data, ['startTime', 'start', 'date', 'bookingDate']);
                 const endTime = findValKey(data, ['endTime', 'end']);
 
@@ -1216,13 +1318,8 @@
                 }
 
                 if (data && (data.type === 'bookingSuccessful' || data.action === 'bookingSuccessful' || (data.detail && data.detail.action === 'bookingSuccessful'))) {
-                    // Extract payload details and update summary card
                     updateSummaryDetails(data);
-
-                    // 1. Trigger Google Ads / Analytics Conversion
                     triggerBookingConversion();
-
-                    // 2. Redirect site to #booking-success
                     navigateTo('booking-success');
                 }
             }
@@ -1277,6 +1374,7 @@
 
                 if (mediaFiles.length === 0) {
                     gridContainer.innerHTML = '<div class="gallery-empty">No photos or videos added yet. Upload files to the "images" folder on GitHub to display them here!</div>';
+                    renderMiniGallery();
                     return;
                 }
 
@@ -1321,9 +1419,68 @@
                     gridContainer.appendChild(card);
                 });
 
+                renderMiniGallery();
+
             } catch (error) {
                 gridContainer.innerHTML = `<div class="gallery-empty">Upload your henna photos and MP4 videos into an <strong>images</strong> folder in your GitHub repository to show them here!</div>`;
+                renderMiniGallery();
             }
+        }
+
+        // Render Home Page 5-Item Mini Gallery Carousel
+        function renderMiniGallery() {
+            const miniTrack = document.getElementById('mini-gallery-track');
+            if (!miniTrack) return;
+
+            if (galleryMediaList.length === 0) {
+                miniTrack.innerHTML = '<div style="grid-column: 1 / -1; color: #5F705B;">Add images to GitHub to showcase them here!</div>';
+                return;
+            }
+
+            miniTrack.innerHTML = '';
+            const total = galleryMediaList.length;
+
+            for (let i = 0; i < 5; i++) {
+                const mediaIndex = (miniCarouselOffset + i) % total;
+                const actualIndex = mediaIndex < 0 ? (total + mediaIndex) : mediaIndex;
+                const item = galleryMediaList[actualIndex];
+
+                const card = document.createElement('div');
+                card.className = 'mini-thumb-card';
+                card.onclick = () => openLightbox(actualIndex);
+
+                if (item.type === 'video') {
+                    const video = document.createElement('video');
+                    video.src = item.url + '#t=0.1';
+                    video.muted = true;
+                    video.playsInline = true;
+                    
+                    const badge = document.createElement('div');
+                    badge.className = 'video-badge';
+                    badge.style.width = '30px';
+                    badge.style.height = '30px';
+                    badge.style.fontSize = '0.8rem';
+                    badge.innerHTML = '▶';
+
+                    card.appendChild(video);
+                    card.appendChild(badge);
+                } else {
+                    const img = document.createElement('img');
+                    img.src = item.url;
+                    img.alt = 'Henna Design';
+                    card.appendChild(img);
+                }
+
+                miniTrack.appendChild(card);
+            }
+        }
+
+        // Shift Mini Gallery Carousel
+        function shiftMiniCarousel(dir) {
+            if (galleryMediaList.length === 0) return;
+            miniCarouselOffset += dir;
+            if (miniCarouselOffset < 0) miniCarouselOffset = galleryMediaList.length - 1;
+            renderMiniGallery();
         }
 
         // Lightbox Modal Functions
