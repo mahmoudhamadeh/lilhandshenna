@@ -23,15 +23,15 @@
    <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml">
 
     <!-- Google tag (gtag.js) — single loader -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-N1WTEHTLY6"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-N1WTEHTLY6"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
 
-  gtag('config', 'G-N1WTEHTLY6');     // GA4 — site visits, page views, etc.
-  gtag('config', 'AW-18347276057');   // Google Ads — for conversion tracking
-</script>
+      gtag('config', 'G-N1WTEHTLY6');     // GA4 — site visits, page views, etc.
+      gtag('config', 'AW-18347276057');   // Google Ads — for conversion tracking
+    </script>
 
     <!-- Google Fonts for Elegant Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1234,6 +1234,9 @@
         };
 
         let currentActiveSubtype = 'booking-simple';
+        
+        // Deduplication guard flag to prevent duplicate conversion fires per booking
+        let hasFiredBookingConversion = false;
 
         // Tab display switcher
         function renderTab(targetHash) {
@@ -1247,6 +1250,9 @@
                 activePage = 'booking';
                 bookingSubtype = CAL_URLS[targetHash] ? targetHash : 'booking-simple';
                 currentActiveSubtype = bookingSubtype;
+                
+                // Reset conversion flag whenever returning to booking pages so new bookings can fire
+                hasFiredBookingConversion = false;
             } else if (targetHash === 'gallery') {
                 activePage = 'gallery';
             } else if (targetHash === 'contact') {
@@ -1306,22 +1312,26 @@
             window.location.hash = tabId;
         }
 
-// Trigger Google Analytics / Ads Conversion Event
-function triggerBookingConversion() {
-    if (typeof gtag === 'function') {
-        // Direct Google Ads Conversion Event
-        gtag('event', 'conversion', {
-            'send_to': 'AW-18347276057/Tn20CKj5ktscEJnu1KxE',
-            'value': 1.0,
-            'currency': 'CAD'
-        });
+        // Trigger Google Analytics / Ads Conversion Event (Guarded against multi-firing)
+        function triggerBookingConversion() {
+            if (hasFiredBookingConversion) return;
+            hasFiredBookingConversion = true;
 
-        // Custom GA4 Event
-        gtag('event', 'booking_complete', {
-            'page_location': window.location.href
-        });
-    }
-}
+            if (typeof gtag === 'function') {
+                // Direct Google Ads Conversion Event
+                gtag('event', 'conversion', {
+                    'send_to': 'AW-18347276057/Tn20CKj5ktscEJnu1KxE',
+                    'value': 1.0,
+                    'currency': 'CAD'
+                });
+
+                // Custom GA4 Event
+                gtag('event', 'booking_complete', {
+                    'page_location': window.location.href
+                });
+            }
+        }
+
         // Format Date String from Cal payload
         function formatBookingTime(startTimeStr, endTimeStr) {
             if (!startTimeStr) return 'Confirmation details sent via email';
@@ -1399,6 +1409,8 @@ function triggerBookingConversion() {
                 }
 
                 if (data && (data.type === 'bookingSuccessful' || data.action === 'bookingSuccessful' || (data.detail && data.detail.action === 'bookingSuccessful'))) {
+                    if (hasFiredBookingConversion) return;
+                    
                     updateSummaryDetails(data);
                     triggerBookingConversion();
                     navigateTo('booking-success');
