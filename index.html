@@ -1129,7 +1129,7 @@
 
         // Format Date String from Cal payload
         function formatBookingTime(startTimeStr, endTimeStr) {
-            if (!startTimeStr) return 'Details sent via email';
+            if (!startTimeStr) return 'Confirmation details sent via email';
 
             try {
                 const startDate = new Date(startTimeStr);
@@ -1148,24 +1148,42 @@
             }
         }
 
+        // Deep Search for Object Keys (Handles nested properties across all Cal.com versions)
+        function findValKey(obj, keys) {
+            if (!obj || typeof obj !== 'object') return null;
+            for (let k of keys) {
+                if (obj[k] !== undefined && obj[k] !== null) return obj[k];
+            }
+            for (let prop in obj) {
+                if (obj[prop] && typeof obj[prop] === 'object') {
+                    let res = findValKey(obj[prop], keys);
+                    if (res) return res;
+                }
+            }
+            return null;
+        }
+
         // Extract Cal.com booking data from postMessage
         function updateSummaryDetails(data) {
             let what = 'Henna Session';
             let when = 'Confirmation details sent via email';
 
             if (data) {
-                const payload = data.data || data.detail || data;
-                
-                if (payload.title || payload.type || payload.eventType) {
-                    what = payload.title || payload.type || payload.eventType.title || 'Henna Session';
-                    // Clean up title text if Cal appends host names
-                    what = what.replace(/ between .*/i, '');
+                // Find event/service title
+                const extractedTitle = findValKey(data, ['title', 'type', 'eventTitle', 'eventType']);
+                if (extractedTitle) {
+                    let titleStr = typeof extractedTitle === 'object' ? (extractedTitle.title || '') : String(extractedTitle);
+                    if (titleStr) {
+                        what = titleStr.replace(/ between .*/i, '');
+                    }
                 }
 
-                if (payload.startTime || payload.start) {
-                    const start = payload.startTime || payload.start;
-                    const end = payload.endTime || payload.end;
-                    when = formatBookingTime(start, end);
+                // Find start & end timestamps across nested payload
+                const startTime = findValKey(data, ['startTime', 'start', 'date', 'bookingDate']);
+                const endTime = findValKey(data, ['endTime', 'end']);
+
+                if (startTime) {
+                    when = formatBookingTime(startTime, endTime);
                 }
             }
 
