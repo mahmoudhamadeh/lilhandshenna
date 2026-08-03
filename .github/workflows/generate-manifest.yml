@@ -4,17 +4,22 @@ on:
   push:
     paths:
       - 'images/**'
-      - '!images/manifest.json'  # Prevents self-trigger loop when manifest.json is committed
+      - '!images/manifest.json'  # Prevents self-trigger loop
+
+# Ensure rapid sequential pushes/uploads do not conflict or cause git race conditions
+concurrency:
+  group: gallery-manifest-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Grants explicit write access to commit & push back to the repo
+      contents: write  # Explicit write access to commit & push back
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4  # Node 24 compatible (no deprecation warnings)
+        uses: actions/checkout@v4
 
       - name: Generate JSON Manifest
         run: |
