@@ -1487,9 +1487,19 @@
                     miniImg.alt = 'Little Hands Henna Design';
                     miniImg.loading = 'lazy';
 
+                    // Fallback handler if image or auto-generated video thumbnail fails to load
+                    const attachImgFallback = (imgElem) => {
+                        imgElem.onerror = () => {
+                            imgElem.onerror = null;
+                            imgElem.src = 'logo.png'; // Fallback to site logo/placeholder
+                        };
+                    };
+                    attachImgFallback(img);
+                    attachImgFallback(miniImg);
+
                     if (isVideo) {
-                        // Point thumbnail image to the ffmpeg auto-generated static .jpg
-                        const thumbUrl = mediaUrl.substring(0, mediaUrl.lastIndexOf('.')) + '_thumb.jpg';
+                        // Point thumbnail image to full filename + _thumb.jpg (e.g., clip.mp4_thumb.jpg)
+                        const thumbUrl = mediaUrl + '_thumb.jpg';
                         img.src = thumbUrl;
                         miniImg.src = thumbUrl;
 
