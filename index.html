@@ -1433,23 +1433,37 @@
         let galleryMediaList = [];
         let currentMediaIndex = 0;
 
-        // Auto-generate video poster using Off-screen HTML5 Canvas (Cross-browser solution for Chrome/Firefox/Safari)
-        function setupVideoPoster(videoElem) {
-            videoElem.addEventListener('loadeddata', function generatePoster() {
-                if (videoElem.readyState >= 2) {
-                    try {
-                        const canvas = document.createElement('canvas');
-                        canvas.width = videoElem.videoWidth || 320;
-                        canvas.height = videoElem.videoHeight || 320;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(videoElem, 0, 0, canvas.width, canvas.height);
-                        videoElem.poster = canvas.toDataURL('image/jpeg');
-                    } catch (e) {
-                        // Fallback if cross-origin policy prevents canvas extraction
-                    }
-                    videoElem.removeEventListener('loadeddata', generatePoster);
-                }
+        // Auto-generate video poster using Off-screen HTML5 Canvas & Seek Listener (Robust CORS + cross-browser frame extraction)
+        function createVideoWithPoster(videoUrl) {
+            const video = document.createElement('video');
+            video.crossOrigin = 'anonymous'; // Prevents canvas security taint
+            video.preload = 'metadata';
+            video.muted = true;
+            video.playsInline = true;
+
+            // Step 1: When metadata loads, seek to 0.1s to force frame decoding
+            video.addEventListener('loadedmetadata', function onMetadata() {
+                video.currentTime = 0.1;
+                video.removeEventListener('loadedmetadata', onMetadata);
             });
+
+            // Step 2: Once seek completes, draw frame to canvas and export poster
+            video.addEventListener('seeked', function onSeeked() {
+                try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth || 320;
+                    canvas.height = video.videoHeight || 320;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    video.poster = canvas.toDataURL('image/jpeg');
+                } catch (e) {
+                    // Fallback silently if CORS fails
+                }
+                video.removeEventListener('seeked', onSeeked);
+            });
+
+            video.src = videoUrl;
+            return video;
         }
 
         async function fetchGalleryImages() {
@@ -1508,14 +1522,7 @@
                     miniThumb.onclick = () => openLightbox(index);
 
                     if (isVideo) {
-                        const video = document.createElement('video');
-                        video.src = file.download_url + '#t=0.1';
-                        video.preload = 'metadata';
-                        video.muted = true;
-                        video.playsInline = true;
-                        
-                        // Attach canvas poster generator
-                        setupVideoPoster(video);
+                        const video = createVideoWithPoster(file.download_url);
 
                         const badge = document.createElement('div');
                         badge.className = 'video-badge';
@@ -1524,13 +1531,7 @@
                         card.appendChild(video);
                         card.appendChild(badge);
 
-                        const miniVideo = document.createElement('video');
-                        miniVideo.src = file.download_url + '#t=0.1';
-                        miniVideo.preload = 'metadata';
-                        miniVideo.muted = true;
-                        miniVideo.playsInline = true;
-                        setupVideoPoster(miniVideo);
-
+                        const miniVideo = createVideoWithPoster(file.download_url);
                         const miniBadge = badge.cloneNode(true);
                         miniThumb.appendChild(miniVideo);
                         miniThumb.appendChild(miniBadge);
