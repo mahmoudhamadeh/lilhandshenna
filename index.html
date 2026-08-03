@@ -462,6 +462,82 @@
             background: #ffffff !important;
         }
 
+        /* Success / Thank You Confirmation Card (#booking-success) */
+        .success-card {
+            background: #FFFFFF !important;
+            border-radius: 24px;
+            padding: 3.5rem 2rem;
+            box-shadow: 0 10px 30px rgba(44, 34, 30, 0.08) !important;
+            border: 2px solid #5F705B !important;
+            text-align: center;
+            max-width: 750px;
+            margin: 1rem auto;
+        }
+
+        .success-icon {
+            width: 70px;
+            height: 70px;
+            background-color: rgba(95, 112, 91, 0.15);
+            color: #5F705B;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            margin: 0 auto 1.5rem;
+        }
+
+        .success-title {
+            font-family: 'Playfair Display', serif !important;
+            color: #7C3A3E !important;
+            font-size: 2.3rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .success-message {
+            color: #423531;
+            font-size: 1.05rem;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+
+        .instructions-box {
+            background: #F4F1EF;
+            border: 1px dashed #D1B8B5;
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: left;
+            margin-bottom: 2rem;
+        }
+
+        .instructions-box h4 {
+            color: #7C3A3E;
+            margin-bottom: 0.8rem;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.15rem;
+        }
+
+        .instructions-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .instructions-box li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+            color: #423531;
+        }
+
+        .instructions-box li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #5F705B;
+            font-weight: bold;
+        }
+
         /* Page 3: Gallery Grid */
         .gallery-container {
             background: #FFFFFF !important;
@@ -851,7 +927,27 @@
             </div>
         </section>
 
-        <!-- PAGE 3: DYNAMIC GITHUB GALLERY (PHOTOS & VIDEOS) -->
+        <!-- PAGE 3: BOOKING SUCCESS / THANK YOU PAGE (#booking-success) -->
+        <section id="booking-success" class="page-section">
+            <div class="success-card">
+                <div class="success-icon">✨</div>
+                <h1 class="success-title">Thanks for Booking!</h1>
+                <p class="success-message">Your appointment with Masa has been successfully requested. We can't wait to create something beautiful for you!</p>
+
+                <div class="instructions-box">
+                    <h4>What happens next?</h4>
+                    <ul>
+                        <li><strong>Check your inbox:</strong> A confirmation email with all appointment details has been sent to your email address.</li>
+                        <li><strong>Preparation:</strong> Make sure your skin is clean and dry before your session (avoid applying lotions right beforehand).</li>
+                        <li><strong>Need to make changes?</strong> You can modify or reschedule your slot directly through the link in your confirmation email.</li>
+                    </ul>
+                </div>
+
+                <button class="btn-service" style="max-width: 250px; margin: 0 auto;" onclick="navigateTo('home')">Return to Home</button>
+            </div>
+        </section>
+
+        <!-- PAGE 4: DYNAMIC GITHUB GALLERY (PHOTOS & VIDEOS) -->
         <section id="gallery" class="page-section">
             <div class="gallery-container">
                 <div class="section-header" style="text-align: center;">
@@ -903,7 +999,9 @@
             let activePage = 'home';
             let bookingSubtype = 'booking-simple';
 
-            if (targetHash.startsWith('booking')) {
+            if (targetHash === 'booking-success') {
+                activePage = 'booking-success';
+            } else if (targetHash.startsWith('booking')) {
                 activePage = 'booking';
                 bookingSubtype = CAL_URLS[targetHash] ? targetHash : 'booking-simple';
             } else if (targetHash === 'gallery') {
@@ -923,7 +1021,7 @@
             if (targetSection) targetSection.classList.add('active');
 
             // Activate header nav button
-            const activeHeaderBtn = document.getElementById('btn-' + (activePage === 'booking' ? 'booking' : activePage));
+            const activeHeaderBtn = document.getElementById('btn-' + (activePage.startsWith('booking') ? 'booking' : activePage));
             if (activeHeaderBtn) activeHeaderBtn.classList.add('active');
 
             // If on Booking page, switch iframe & highlight active booking sub-button
@@ -933,10 +1031,8 @@
                     iframe.src = CAL_URLS[bookingSubtype];
                 }
 
-                // Deactivate sub-buttons
                 document.querySelectorAll('.booking-tab-btn').forEach(btn => btn.classList.remove('active'));
                 
-                // Activate sub-button
                 const subBtnId = bookingSubtype.replace('booking-', 'b-btn-');
                 const activeSubBtn = document.getElementById(subBtnId);
                 if (activeSubBtn) activeSubBtn.classList.add('active');
@@ -949,6 +1045,42 @@
         function navigateTo(tabId) {
             window.location.hash = tabId;
         }
+
+        // Trigger Google Analytics / Ads Conversion Event
+        function triggerBookingConversion() {
+            if (typeof gtag === 'function') {
+                gtag('event', 'conversion', {
+                    'send_to': 'G-N1WTEHTLY6',
+                    'event_category': 'Booking',
+                    'event_label': 'Henna Appointment Completed'
+                });
+                gtag('event', 'booking_complete', {
+                    'page_location': window.location.href
+                });
+            }
+        }
+
+        // Listen for Cal.com Embed "bookingSuccessful" postMessage event
+        window.addEventListener('message', function(e) {
+            // Check if postMessage is from Cal.com
+            if (e.origin.includes('cal.com')) {
+                let data = e.data;
+                
+                // Parse JSON data if needed
+                if (typeof data === 'string') {
+                    try { data = JSON.parse(data); } catch(err) {}
+                }
+
+                // Cal.com sends 'bookingSuccessful' or action 'bookingSuccessful'
+                if (data && (data.type === 'bookingSuccessful' || data.action === 'bookingSuccessful' || (data.detail && data.detail.action === 'bookingSuccessful'))) {
+                    // 1. Trigger Google Ads / Analytics Conversion
+                    triggerBookingConversion();
+
+                    // 2. Redirect site to #booking-success
+                    navigateTo('booking-success');
+                }
+            }
+        });
 
         // Scroll to Contact section on Home page
         function scrollToContact() {
@@ -972,7 +1104,7 @@
         const GITHUB_REPO = 'lilhandshenna';
         const IMAGES_FOLDER = 'images';
 
-        let galleryMediaList = []; // Stores objects: { url, type: 'image'|'video' }
+        let galleryMediaList = [];
         let currentMediaIndex = 0;
 
         async function fetchGalleryImages() {
@@ -1020,7 +1152,7 @@
 
                     if (isVideo) {
                         const video = document.createElement('video');
-                        video.src = file.download_url + '#t=0.1'; // Loads first frame as poster
+                        video.src = file.download_url + '#t=0.1';
                         video.preload = 'metadata';
                         video.muted = true;
                         video.playsInline = true;
@@ -1059,7 +1191,7 @@
         function closeLightbox(event) {
             if (event) event.stopPropagation();
             const lightboxVideo = document.getElementById('lightbox-video');
-            lightboxVideo.pause(); // Stop video playback when closing
+            lightboxVideo.pause();
             lightboxVideo.src = '';
 
             document.getElementById('lightbox-modal').classList.remove('active');
@@ -1081,7 +1213,6 @@
             
             const currentMedia = galleryMediaList[currentMediaIndex];
 
-            // Pause previous video
             videoElement.pause();
 
             if (currentMedia.type === 'video') {
@@ -1090,7 +1221,7 @@
 
                 videoElement.src = currentMedia.url;
                 videoElement.classList.add('active');
-                videoElement.play().catch(() => {}); // Auto-play if allowed
+                videoElement.play().catch(() => {});
             } else {
                 videoElement.classList.remove('active');
                 videoElement.src = '';
