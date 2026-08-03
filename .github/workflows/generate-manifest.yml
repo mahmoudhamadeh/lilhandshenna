@@ -1,0 +1,27 @@
+name: Generate Gallery Manifest
+
+on:
+  push:
+    paths:
+      - 'images/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Generate JSON Manifest
+        run: |
+          cd images
+          # Find all media files and convert list to a clean JSON array
+          ls -1 | grep -E '\.(jpg|jpeg|png|webp|gif|mp4|mov|webm)$' | jq -R . | jq -s . > manifest.json
+
+      - name: Commit and Push Manifest
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add images/manifest.json
+          git commit -m "auto: update gallery manifest.json" || exit 0
+          git push
