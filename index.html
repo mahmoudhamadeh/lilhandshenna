@@ -466,31 +466,31 @@
         .success-card {
             background: #FFFFFF !important;
             border-radius: 24px;
-            padding: 3rem 2rem;
+            padding: 3.5rem 2rem;
             box-shadow: 0 10px 30px rgba(44, 34, 30, 0.08) !important;
             border: 2px solid #5F705B !important;
             text-align: center;
-            max-width: 1000px;
+            max-width: 800px;
             margin: 1rem auto;
         }
 
         .success-icon {
-            width: 70px;
-            height: 70px;
+            width: 75px;
+            height: 75px;
             background-color: rgba(95, 112, 91, 0.15);
             color: #5F705B;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.2rem;
+            font-size: 2.4rem;
             margin: 0 auto 1.5rem;
         }
 
         .success-title {
             font-family: 'Playfair Display', serif !important;
             color: #7C3A3E !important;
-            font-size: 2.3rem;
+            font-size: 2.4rem;
             margin-bottom: 0.8rem;
         }
 
@@ -505,16 +505,16 @@
             background: #F4F1EF;
             border: 1px dashed #D1B8B5;
             border-radius: 16px;
-            padding: 1.5rem;
+            padding: 1.8rem;
             text-align: left;
             margin-bottom: 2rem;
         }
 
         .instructions-box h4 {
             color: #7C3A3E;
-            margin-bottom: 0.8rem;
+            margin-bottom: 1rem;
             font-family: 'Playfair Display', serif;
-            font-size: 1.15rem;
+            font-size: 1.25rem;
         }
 
         .instructions-box ul {
@@ -524,8 +524,8 @@
 
         .instructions-box li {
             position: relative;
-            padding-left: 1.5rem;
-            margin-bottom: 0.5rem;
+            padding-left: 1.6rem;
+            margin-bottom: 0.7rem;
             font-size: 0.95rem;
             color: #423531;
         }
@@ -536,6 +536,13 @@
             left: 0;
             color: #5F705B;
             font-weight: bold;
+        }
+
+        .success-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
         /* Page 4: Gallery Grid */
@@ -913,7 +920,7 @@
                     <button class="booking-tab-btn" id="b-btn-event" onclick="navigateTo('booking-event')">🎉 Parties & Events</button>
                 </div>
 
-                <div class="cal-embed-wrapper" id="booking-iframe-container">
+                <div class="cal-embed-wrapper">
                     <iframe 
                         id="cal-iframe"
                         src="https://cal.com/lilhenna/simple?embed=true" 
@@ -931,24 +938,23 @@
         <section id="booking-success" class="page-section">
             <div class="success-card">
                 <div class="success-icon">✨</div>
-                <h1 class="success-title">Thanks for Booking!</h1>
-                <p class="success-message">Your appointment with Masa has been successfully scheduled. We can't wait to create something beautiful for you!</p>
-
-                <!-- Embedded Live Cal.com Summary View -->
-                <div class="cal-embed-wrapper" id="success-iframe-container" style="margin-bottom: 2rem;">
-                    <!-- The active Cal iframe moves here after booking so clients see their full summary! -->
-                </div>
+                <h1 class="success-title">Booking Confirmed!</h1>
+                <p class="success-message">Your henna session with Masa has been successfully requested. We can't wait to create something beautiful for you!</p>
 
                 <div class="instructions-box">
-                    <h4>What happens next?</h4>
+                    <h4>Important Session Instructions:</h4>
                     <ul>
-                        <li><strong>Check your inbox:</strong> A confirmation email with all appointment details has been sent to your email address.</li>
-                        <li><strong>Preparation:</strong> Make sure your skin is clean and dry before your session (avoid applying lotions right beforehand).</li>
-                        <li><strong>Need to make changes?</strong> You can modify, add to calendar, or reschedule directly using the options in the window above or in your email.</li>
+                        <li><strong>Confirmation Email:</strong> A calendar invitation and confirmation summary have been sent to your email address.</li>
+                        <li><strong>Skin Prep:</strong> Please ensure your skin is clean and dry before your session (avoid applying heavy body lotions or oils beforehand).</li>
+                        <li><strong>Studio Location:</strong> 9 Amsterdam Dr, Barrie, ON L9J 0Z4.</li>
+                        <li><strong>Need to reschedule?</strong> You can modify or reschedule your time slot anytime using the link inside your confirmation email.</li>
                     </ul>
                 </div>
 
-                <button class="btn-service" style="max-width: 250px; margin: 0 auto;" onclick="navigateTo('home')">Return to Home</button>
+                <div class="success-actions">
+                    <button class="btn-service" style="max-width: 220px;" onclick="navigateTo('home')">Return to Home</button>
+                    <button class="btn-service" style="max-width: 220px; background-color: #5F705B;" onclick="navigateTo('booking-simple')">Book Another Slot</button>
+                </div>
             </div>
         </section>
 
@@ -999,8 +1005,6 @@
             'booking-event': 'https://cal.com/lilhenna/event?embed=true'
         };
 
-        let lastBookingSubtype = 'booking-simple';
-
         // Tab display switcher
         function renderTab(targetHash) {
             let activePage = 'home';
@@ -1011,7 +1015,6 @@
             } else if (targetHash.startsWith('booking')) {
                 activePage = 'booking';
                 bookingSubtype = CAL_URLS[targetHash] ? targetHash : 'booking-simple';
-                lastBookingSubtype = bookingSubtype;
             } else if (targetHash === 'gallery') {
                 activePage = 'gallery';
             }
@@ -1032,23 +1035,11 @@
             const activeHeaderBtn = document.getElementById('btn-' + (activePage.startsWith('booking') ? 'booking' : activePage));
             if (activeHeaderBtn) activeHeaderBtn.classList.add('active');
 
-            const iframe = document.getElementById('cal-iframe');
-
-            // Move & Reset Iframe based on active page
-            if (activePage === 'booking-success') {
-                // Move current summary iframe into the success container
-                const successContainer = document.getElementById('success-iframe-container');
-                if (iframe && successContainer && iframe.parentElement !== successContainer) {
-                    successContainer.appendChild(iframe);
-                }
-            } else if (activePage === 'booking') {
-                // Return iframe to main booking container
-                const bookingContainer = document.getElementById('booking-iframe-container');
-                if (iframe && bookingContainer && iframe.parentElement !== bookingContainer) {
-                    bookingContainer.appendChild(iframe);
-                    // Force re-load fresh calendar picker so it's not stuck on "meeting scheduled"
-                    iframe.src = CAL_URLS[bookingSubtype];
-                } else if (iframe && iframe.src !== CAL_URLS[bookingSubtype]) {
+            // When returning to #booking page, switch service iframe OR reload to reset fresh state
+            if (activePage === 'booking') {
+                const iframe = document.getElementById('cal-iframe');
+                if (iframe) {
+                    // Always reload URL when opening booking tab so previous completed screens disappear
                     iframe.src = CAL_URLS[bookingSubtype];
                 }
 
@@ -1094,7 +1085,7 @@
                     // 1. Trigger Google Ads / Analytics Conversion
                     triggerBookingConversion();
 
-                    // 2. Redirect site to #booking-success (will move iframe & display summary)
+                    // 2. Redirect site to #booking-success
                     navigateTo('booking-success');
                 }
             }
