@@ -231,90 +231,139 @@
             border: 1px dashed #5F705B !important;
         }
 
-        /* Home Page Mini Carousel Section */
+        /* Responsive Mini Gallery Showcase Card */
         .mini-gallery-card {
             background: #FFFFFF !important;
-            border-radius: 20px;
-            padding: 1.8rem 1.5rem;
+            border-radius: 24px;
+            padding: 2rem 1.5rem;
             box-shadow: 0 10px 30px rgba(44, 34, 30, 0.08) !important;
             border: 1px solid rgba(158, 82, 87, 0.2) !important;
-            margin-bottom: 2.5rem;
             text-align: center;
+            margin-bottom: 2.5rem;
         }
 
-        .mini-gallery-title {
+        .mini-gallery-card h2 {
             font-family: 'Playfair Display', serif !important;
             color: #7C3A3E !important;
-            font-size: 1.5rem;
-            margin-bottom: 0.3rem;
+            font-size: 1.8rem;
+            margin-bottom: 0.2rem;
         }
 
-        .mini-gallery-sub {
-            color: #5F705B !important;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 1.2rem;
+        .mini-gallery-card p {
+            color: #524642;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
         }
 
-        .carousel-wrapper {
-            position: relative;
+        .mini-gallery-wrapper {
             display: flex;
             align-items: center;
-            gap: 0.8rem;
+            justify-content: space-between;
+            gap: 0.5rem;
+            position: relative;
         }
 
-        .carousel-arrow {
-            background: #F4F1EF !important;
-            border: 2px solid #D1B8B5 !important;
-            color: #7C3A3E !important;
+        .mini-nav-btn {
+            background: #9E5257 !important;
+            color: white !important;
+            border: none;
             width: 40px;
             height: 40px;
             border-radius: 50%;
             cursor: pointer;
-            font-size: 1.2rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s ease;
+            font-size: 1.1rem;
             flex-shrink: 0;
-            user-select: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+            z-index: 2;
         }
 
-        .carousel-arrow:hover {
-            background-color: #9E5257 !important;
-            color: white !important;
-            border-color: #9E5257 !important;
+        .mini-nav-btn:hover {
+            background: #7C3A3E !important;
+            transform: scale(1.1);
         }
 
+        /* Strict Single Row Flex Container */
         .mini-gallery-track {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 0.8rem;
+            display: flex !important;
+            flex-wrap: nowrap !important; /* Prevents 2nd line wrapping on mobile */
+            gap: 12px;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            padding: 6px 4px;
             width: 100%;
-            overflow: hidden;
+            align-items: center;
+            /* Hide scrollbar across browsers */
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge */
+        }
+        .mini-gallery-track::-webkit-scrollbar {
+            display: none; /* Chrome/Safari */
         }
 
-        .mini-thumb-card {
+        /* Flexible Item Sizing for Mobile & Desktop */
+        .mini-thumb {
+            flex: 0 0 calc((100% - (4 * 12px)) / 5); /* Desktop default: 5 items */
             aspect-ratio: 1 / 1;
-            border-radius: 12px;
+            border-radius: 14px;
             overflow: hidden;
             border: 2px solid #D1B8B5;
             cursor: pointer;
             position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.06);
             transition: transform 0.3s ease, border-color 0.3s ease;
             background-color: #E0DCDA;
         }
 
-        .mini-thumb-card:hover {
-            transform: translateY(-3px);
+        .mini-thumb:hover {
+            transform: translateY(-4px);
             border-color: #9E5257 !important;
         }
 
-        .mini-thumb-card img, .mini-thumb-card video {
+        .mini-thumb img, .mini-thumb video {
             width: 100%;
             height: 100%;
             object-fit: cover;
             display: block;
+        }
+
+        .mini-thumb .video-badge {
+            width: 32px;
+            height: 32px;
+            font-size: 0.9rem;
+        }
+
+        /* Media Queries for Screen Adapting */
+        @media (max-width: 992px) {
+            .mini-thumb {
+                flex: 0 0 calc((100% - (3 * 12px)) / 4); /* Tablets: 4 items */
+            }
+        }
+
+        @media (max-width: 640px) {
+            .mini-thumb {
+                flex: 0 0 calc((100% - (2 * 10px)) / 3); /* Mobile: Exactly 3 items in 1 line */
+            }
+            .mini-gallery-card {
+                padding: 1.5rem 0.8rem;
+            }
+            .mini-nav-btn {
+                width: 34px;
+                height: 34px;
+                font-size: 0.95rem;
+            }
+            .mini-gallery-track {
+                gap: 8px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .mini-thumb {
+                flex: 0 0 calc((100% - 8px) / 2); /* Very small screens: 2 items */
+            }
         }
 
         /* Services Grid Section */
@@ -858,9 +907,6 @@
             .hero-title {
                 font-size: 3rem !important;
             }
-            .mini-gallery-track {
-                grid-template-columns: repeat(3, 1fr);
-            }
             .booking-frame-container {
                 padding: 1.5rem 0.5rem;
             }
@@ -936,18 +982,17 @@
                 </div>
             </div>
 
-            <!-- Home Page Mini Gallery Carousel -->
+            <!-- Mini Gallery Showcase Carousel -->
             <div class="mini-gallery-card">
-                <h3 class="mini-gallery-title">Recent Design Showcase</h3>
-                <p class="mini-gallery-sub">Click any photo or video to view in full screen!</p>
-                
-                <div class="carousel-wrapper">
-                    <button class="carousel-arrow" onclick="shiftMiniCarousel(-1)">&#10094;</button>
+                <h2>Recent Design Showcase</h2>
+                <p>Click any photo or video to view in full screen!</p>
+
+                <div class="mini-gallery-wrapper">
+                    <button class="mini-nav-btn" onclick="scrollMiniTrack(-1)" aria-label="Previous image">&#10094;</button>
                     <div class="mini-gallery-track" id="mini-gallery-track">
-                        <!-- Loaded dynamically via JS -->
-                        <div style="grid-column: 1 / -1; color: #5F705B;">Loading showcase...</div>
+                        <div style="color:#5F705B; font-size:0.9rem; padding: 1rem;">Loading showcase...</div>
                     </div>
-                    <button class="carousel-arrow" onclick="shiftMiniCarousel(1)">&#10095;</button>
+                    <button class="mini-nav-btn" onclick="scrollMiniTrack(1)" aria-label="Next image">&#10095;</button>
                 </div>
             </div>
 
@@ -1172,7 +1217,6 @@
         };
 
         let currentActiveSubtype = 'booking-simple';
-        let miniCarouselOffset = 0;
 
         // Tab display switcher
         function renderTab(targetHash) {
@@ -1352,6 +1396,7 @@
 
         async function fetchGalleryImages() {
             const gridContainer = document.getElementById('gallery-grid');
+            const miniTrack = document.getElementById('mini-gallery-track');
             const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${IMAGES_FOLDER}`;
 
             try {
@@ -1374,11 +1419,13 @@
 
                 if (mediaFiles.length === 0) {
                     gridContainer.innerHTML = '<div class="gallery-empty">No photos or videos added yet. Upload files to the "images" folder on GitHub to display them here!</div>';
-                    renderMiniGallery();
+                    miniTrack.innerHTML = '<div style="color:#5F705B; font-size:0.9rem; padding: 1rem;">Upload photos to your GitHub "images" folder to showcase them here!</div>';
                     return;
                 }
 
                 gridContainer.innerHTML = '';
+                miniTrack.innerHTML = '';
+
                 galleryMediaList = mediaFiles.map(file => {
                     const lowerName = file.name.toLowerCase();
                     const isVideo = videoExtensions.some(ext => lowerName.endsWith(ext));
@@ -1388,13 +1435,22 @@
                     };
                 });
 
+                // Populate Main Gallery & Mini Carousel
                 mediaFiles.forEach((file, index) => {
                     const isVideo = videoExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+                    
+                    // 1. Build Main Gallery Card
                     const card = document.createElement('div');
                     card.className = 'gallery-card';
                     card.onclick = () => openLightbox(index);
 
+                    // 2. Build Mini Showcase Thumb Card
+                    const miniThumb = document.createElement('div');
+                    miniThumb.className = 'mini-thumb';
+                    miniThumb.onclick = () => openLightbox(index);
+
                     if (isVideo) {
+                        // Main card video
                         const video = document.createElement('video');
                         video.src = file.download_url + '#t=0.1';
                         video.preload = 'metadata';
@@ -1407,80 +1463,44 @@
 
                         card.appendChild(video);
                         card.appendChild(badge);
+
+                        // Mini thumb video
+                        const miniVideo = video.cloneNode(true);
+                        const miniBadge = badge.cloneNode(true);
+                        miniThumb.appendChild(miniVideo);
+                        miniThumb.appendChild(miniBadge);
                     } else {
+                        // Main card image
                         const img = document.createElement('img');
                         img.src = file.download_url;
                         img.alt = 'Little Hands Henna Design';
                         img.loading = 'lazy';
 
                         card.appendChild(img);
+
+                        // Mini thumb image
+                        const miniImg = img.cloneNode(true);
+                        miniThumb.appendChild(miniImg);
                     }
 
                     gridContainer.appendChild(card);
+                    miniTrack.appendChild(miniThumb);
                 });
-
-                renderMiniGallery();
 
             } catch (error) {
                 gridContainer.innerHTML = `<div class="gallery-empty">Upload your henna photos and MP4 videos into an <strong>images</strong> folder in your GitHub repository to show them here!</div>`;
-                renderMiniGallery();
+                miniTrack.innerHTML = '<div style="color:#5F705B; font-size:0.9rem; padding: 1rem;">Upload photos to your GitHub "images" folder to showcase them here!</div>';
             }
         }
 
-        // Render Home Page 5-Item Mini Gallery Carousel
-        function renderMiniGallery() {
-            const miniTrack = document.getElementById('mini-gallery-track');
-            if (!miniTrack) return;
-
-            if (galleryMediaList.length === 0) {
-                miniTrack.innerHTML = '<div style="grid-column: 1 / -1; color: #5F705B;">Add images to GitHub to showcase them here!</div>';
-                return;
+        // Mini Gallery Smooth Scroll Controls
+        function scrollMiniTrack(direction) {
+            const track = document.getElementById('mini-gallery-track');
+            if (track) {
+                // Scroll width dynamically based on visible thumb container
+                const scrollAmount = track.clientWidth * 0.75 * direction;
+                track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
             }
-
-            miniTrack.innerHTML = '';
-            const total = galleryMediaList.length;
-
-            for (let i = 0; i < 5; i++) {
-                const mediaIndex = (miniCarouselOffset + i) % total;
-                const actualIndex = mediaIndex < 0 ? (total + mediaIndex) : mediaIndex;
-                const item = galleryMediaList[actualIndex];
-
-                const card = document.createElement('div');
-                card.className = 'mini-thumb-card';
-                card.onclick = () => openLightbox(actualIndex);
-
-                if (item.type === 'video') {
-                    const video = document.createElement('video');
-                    video.src = item.url + '#t=0.1';
-                    video.muted = true;
-                    video.playsInline = true;
-                    
-                    const badge = document.createElement('div');
-                    badge.className = 'video-badge';
-                    badge.style.width = '30px';
-                    badge.style.height = '30px';
-                    badge.style.fontSize = '0.8rem';
-                    badge.innerHTML = '▶';
-
-                    card.appendChild(video);
-                    card.appendChild(badge);
-                } else {
-                    const img = document.createElement('img');
-                    img.src = item.url;
-                    img.alt = 'Henna Design';
-                    card.appendChild(img);
-                }
-
-                miniTrack.appendChild(card);
-            }
-        }
-
-        // Shift Mini Gallery Carousel
-        function shiftMiniCarousel(dir) {
-            if (galleryMediaList.length === 0) return;
-            miniCarouselOffset += dir;
-            if (miniCarouselOffset < 0) miniCarouselOffset = galleryMediaList.length - 1;
-            renderMiniGallery();
         }
 
         // Lightbox Modal Functions
