@@ -24,21 +24,24 @@ jobs:
         run: |
           cd images
           
-          # Enable case-insensitive globbing
           shopt -s nullglob nocaseglob
           
-          # Loop through ALL existing video files in the images folder
           for v in *.mp4 *.mov *.webm; do
             if [ -f "$v" ]; then
               thumb_name="${v}_thumb.jpg"
-              echo "Processing video: $v -> $thumb_name"
+              echo "==> Found video: $v"
               
-              # Force ffmpeg thumbnail creation
-              ffmpeg -y -ss 00:00:00.500 -i "$v" -vframes 1 -q:v 2 "$thumb_name" || true
+              if [ ! -f "$thumb_name" ]; then
+                echo "--> Generating thumbnail for $v..."
+                # Input FIRST (-i "$v"), then seek (-ss) for reliable mobile keyframe decoding
+                ffmpeg -i "$v" -ss 00:00:00.100 -vframes 1 -q:v 2 "$thumb_name" -y || ffmpeg -i "$v" -vframes 1 -q:v 2 "$thumb_name" -y || echo "ffmpeg failed for $v"
+              else
+                echo "--> Thumbnail already exists for $v"
+              fi
             fi
           done
           
-          # Build manifest ignoring manifest.json and _thumb.jpg files
+          # Build manifest ignoring manifest.json and thumbnail files
           ls -1 | grep -v 'manifest.json' | grep -v '_thumb.jpg' | grep -iE '\.(jpg|jpeg|png|webp|gif|mp4|mov|webm)$' | jq -R . | jq -s . > manifest.json
 
       - name: Commit and Push
@@ -46,9 +49,6 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Explicitly add both manifest.json AND all generated _thumb.jpg files
-          git add images/manifest.json
-          git add images/*_thumb.jpg 2>/dev/null || true
-          
+          git add images/
           git commit -m "auto: update gallery manifest & video thumbnails" || exit 0
           git push
