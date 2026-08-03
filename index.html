@@ -23,15 +23,15 @@
    <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml">
 
     <!-- Google tag (gtag.js) — single loader -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-N1WTEHTLY6"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-N1WTEHTLY6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
 
-      gtag('config', 'G-N1WTEHTLY6');     // GA4 — site visits, page views, etc.
-      gtag('config', 'AW-18347276057');   // Google Ads — for conversion tracking
-    </script>
+  gtag('config', 'G-N1WTEHTLY6');     // GA4 — site visits, page views, etc.
+  gtag('config', 'AW-18347276057');   // Google Ads — for conversion tracking
+</script>
 
     <!-- Google Fonts for Elegant Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -794,6 +794,7 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             border: 2px solid #D1B8B5;
             transition: transform 0.3s ease, background 0.3s ease;
+            z-index: 2;
         }
 
         .gallery-card:hover .video-badge {
@@ -1432,6 +1433,25 @@
         let galleryMediaList = [];
         let currentMediaIndex = 0;
 
+        // Auto-generate video poster using Off-screen HTML5 Canvas (Cross-browser solution for Chrome/Firefox/Safari)
+        function setupVideoPoster(videoElem) {
+            videoElem.addEventListener('loadeddata', function generatePoster() {
+                if (videoElem.readyState >= 2) {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = videoElem.videoWidth || 320;
+                        canvas.height = videoElem.videoHeight || 320;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(videoElem, 0, 0, canvas.width, canvas.height);
+                        videoElem.poster = canvas.toDataURL('image/jpeg');
+                    } catch (e) {
+                        // Fallback if cross-origin policy prevents canvas extraction
+                    }
+                    videoElem.removeEventListener('loadeddata', generatePoster);
+                }
+            });
+        }
+
         async function fetchGalleryImages() {
             const gridContainer = document.getElementById('gallery-grid');
             const miniTrack = document.getElementById('mini-gallery-track');
@@ -1493,6 +1513,9 @@
                         video.preload = 'metadata';
                         video.muted = true;
                         video.playsInline = true;
+                        
+                        // Attach canvas poster generator
+                        setupVideoPoster(video);
 
                         const badge = document.createElement('div');
                         badge.className = 'video-badge';
@@ -1501,7 +1524,13 @@
                         card.appendChild(video);
                         card.appendChild(badge);
 
-                        const miniVideo = video.cloneNode(true);
+                        const miniVideo = document.createElement('video');
+                        miniVideo.src = file.download_url + '#t=0.1';
+                        miniVideo.preload = 'metadata';
+                        miniVideo.muted = true;
+                        miniVideo.playsInline = true;
+                        setupVideoPoster(miniVideo);
+
                         const miniBadge = badge.cloneNode(true);
                         miniThumb.appendChild(miniVideo);
                         miniThumb.appendChild(miniBadge);
