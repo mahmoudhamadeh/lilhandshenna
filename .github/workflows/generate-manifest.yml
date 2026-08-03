@@ -4,9 +4,8 @@ on:
   push:
     paths:
       - 'images/**'
-      - '!images/manifest.json'  # Prevents self-trigger loop
+      - '!images/manifest.json'
 
-# Ensure rapid sequential pushes/uploads do not conflict or cause git race conditions
 concurrency:
   group: gallery-manifest-${{ github.ref }}
   cancel-in-progress: true
@@ -15,23 +14,31 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Explicit write access to commit & push back
+      contents: write
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Generate JSON Manifest
+      - name: Generate Video Thumbnails & JSON Manifest
         run: |
           cd images
-          # Case-insensitive extension matching (.JPG, .PNG, .MP4)
-          # Exclude manifest.json itself from the output list
-          ls -1 | grep -v 'manifest.json' | grep -iE '\.(jpg|jpeg|png|webp|gif|mp4|mov|webm)$' | jq -R . | jq -s . > manifest.json
 
-      - name: Commit and Push Manifest
+          # Extract 1st frame from any video files as a static .jpg thumbnail
+          for v in $(ls -1 | grep -iE '\.(mp4|mov|webm)$'); do
+            thumb_name="${v%.*}_thumb.jpg"
+            if [ ! -f "$thumb_name" ]; then
+              ffmpeg -i "$v" -ss 00:00:00.500 -vframes 1 "$thumb_name" -y
+            fi
+          done
+
+          # Build manifest ignoring manifest.json and auto-generated thumbs from listing
+          ls -1 | grep -v 'manifest.json' | grep -v '_thumb.jpg' | grep -iE '\.(jpg|jpeg|png|webp|gif|mp4|mov|webm)$' | jq -R . | jq -s . > manifest.json
+
+      - name: Commit and Push
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add images/manifest.json
-          git commit -m "auto: update gallery manifest.json" || exit 0
+          git add images/
+          git commit -m "auto: update gallery manifest & thumbnails" || exit 0
           git push
