@@ -289,24 +289,23 @@
         /* Strict Single Row Flex Container */
         .mini-gallery-track {
             display: flex !important;
-            flex-wrap: nowrap !important; /* Prevents 2nd line wrapping on mobile */
+            flex-wrap: nowrap !important;
             gap: 12px;
             overflow-x: auto;
             scroll-behavior: smooth;
             padding: 6px 4px;
             width: 100%;
             align-items: center;
-            /* Hide scrollbar across browsers */
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none; /* IE/Edge */
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
         .mini-gallery-track::-webkit-scrollbar {
-            display: none; /* Chrome/Safari */
+            display: none;
         }
 
         /* Flexible Item Sizing for Mobile & Desktop */
         .mini-thumb {
-            flex: 0 0 calc((100% - (4 * 12px)) / 5); /* Desktop default: 5 items */
+            flex: 0 0 calc((100% - (4 * 12px)) / 5); /* Desktop: 5 items */
             aspect-ratio: 1 / 1;
             border-radius: 14px;
             overflow: hidden;
@@ -952,7 +951,7 @@
                 </button>
             </li>
             <li>
-                <button class="nav-btn" id="btn-contact" onclick="scrollToContact()">
+                <button class="nav-btn" id="btn-contact" onclick="navigateTo('contact')">
                     <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
                     Contact
                 </button>
@@ -1222,6 +1221,7 @@
         function renderTab(targetHash) {
             let activePage = 'home';
             let bookingSubtype = 'booking-simple';
+            let shouldScrollContact = false;
 
             if (targetHash === 'booking-success') {
                 activePage = 'booking-success';
@@ -1231,6 +1231,9 @@
                 currentActiveSubtype = bookingSubtype;
             } else if (targetHash === 'gallery') {
                 activePage = 'gallery';
+            } else if (targetHash === 'contact') {
+                activePage = 'home';
+                shouldScrollContact = true;
             }
 
             // Hide all sections
@@ -1245,8 +1248,15 @@
             const targetSection = document.getElementById(activePage);
             if (targetSection) targetSection.classList.add('active');
 
-            // Activate header nav button
-            const activeHeaderBtn = document.getElementById('btn-' + (activePage.startsWith('booking') ? 'booking' : activePage));
+            // Activate header nav button accurately
+            let activeNavKey = activePage;
+            if (targetHash === 'contact') {
+                activeNavKey = 'contact';
+            } else if (activePage.startsWith('booking')) {
+                activeNavKey = 'booking';
+            }
+
+            const activeHeaderBtn = document.getElementById('btn-' + activeNavKey);
             if (activeHeaderBtn) activeHeaderBtn.classList.add('active');
 
             // When returning to #booking page, switch service iframe OR reload to reset fresh state
@@ -1263,7 +1273,14 @@
                 if (activeSubBtn) activeSubBtn.classList.add('active');
             }
 
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (shouldScrollContact) {
+                const contactElem = document.getElementById('contact-section');
+                if (contactElem) {
+                    contactElem.scrollIntoView({ behavior: 'smooth' });
+                }
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         }
 
         // Action trigger for clicks
@@ -1369,17 +1386,6 @@
             }
         });
 
-        // Scroll to Contact section on Home page
-        function scrollToContact() {
-            if (!document.getElementById('home').classList.contains('active')) {
-                renderTab('home');
-            }
-            const contactElem = document.getElementById('contact-section');
-            if (contactElem) {
-                contactElem.scrollIntoView({ behavior: 'smooth' });
-            }
-        }
-
         // Listen for browser hash changes (Back/Forward clicks)
         window.addEventListener('hashchange', () => {
             const currentHash = window.location.hash.replace('#', '');
@@ -1450,7 +1456,6 @@
                     miniThumb.onclick = () => openLightbox(index);
 
                     if (isVideo) {
-                        // Main card video
                         const video = document.createElement('video');
                         video.src = file.download_url + '#t=0.1';
                         video.preload = 'metadata';
@@ -1464,13 +1469,11 @@
                         card.appendChild(video);
                         card.appendChild(badge);
 
-                        // Mini thumb video
                         const miniVideo = video.cloneNode(true);
                         const miniBadge = badge.cloneNode(true);
                         miniThumb.appendChild(miniVideo);
                         miniThumb.appendChild(miniBadge);
                     } else {
-                        // Main card image
                         const img = document.createElement('img');
                         img.src = file.download_url;
                         img.alt = 'Little Hands Henna Design';
@@ -1478,7 +1481,6 @@
 
                         card.appendChild(img);
 
-                        // Mini thumb image
                         const miniImg = img.cloneNode(true);
                         miniThumb.appendChild(miniImg);
                     }
@@ -1497,7 +1499,6 @@
         function scrollMiniTrack(direction) {
             const track = document.getElementById('mini-gallery-track');
             if (track) {
-                // Scroll width dynamically based on visible thumb container
                 const scrollAmount = track.clientWidth * 0.75 * direction;
                 track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
             }
