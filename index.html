@@ -340,7 +340,7 @@
             border-color: #9E5257 !important;
         }
 
-        .mini-thumb img, .mini-thumb video {
+        .mini-thumb img {
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -768,7 +768,7 @@
             border-color: #9E5257 !important;
         }
 
-        .gallery-card img, .gallery-card video {
+        .gallery-card img {
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -1433,37 +1433,38 @@
         let galleryMediaList = [];
         let currentMediaIndex = 0;
 
-        // Auto-generate video poster using Off-screen HTML5 Canvas & Seek Listener (Robust CORS + cross-browser frame extraction)
-        function createVideoWithPoster(videoUrl) {
-            const video = document.createElement('video');
-            video.crossOrigin = 'anonymous'; // Prevents canvas security taint
-            video.preload = 'metadata';
-            video.muted = true;
-            video.playsInline = true;
+        // Extract single poster image via temporary off-screen <video> element (Prevents double network requests)
+        function generateSinglePoster(videoUrl, callback) {
+            const tempVideo = document.createElement('video');
+            tempVideo.crossOrigin = 'anonymous';
+            tempVideo.preload = 'metadata';
+            tempVideo.muted = true;
+            tempVideo.playsInline = true;
 
-            // Step 1: When metadata loads, seek to 0.1s to force frame decoding
-            video.addEventListener('loadedmetadata', function onMetadata() {
-                video.currentTime = 0.1;
-                video.removeEventListener('loadedmetadata', onMetadata);
+            tempVideo.addEventListener('loadedmetadata', function onMetadata() {
+                tempVideo.currentTime = 0.1;
+                tempVideo.removeEventListener('loadedmetadata', onMetadata);
             });
 
-            // Step 2: Once seek completes, draw frame to canvas and export poster
-            video.addEventListener('seeked', function onSeeked() {
+            tempVideo.addEventListener('seeked', function onSeeked() {
                 try {
                     const canvas = document.createElement('canvas');
-                    canvas.width = video.videoWidth || 320;
-                    canvas.height = video.videoHeight || 320;
+                    canvas.width = tempVideo.videoWidth || 320;
+                    canvas.height = tempVideo.videoHeight || 320;
                     const ctx = canvas.getContext('2d');
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    video.poster = canvas.toDataURL('image/jpeg');
+                    ctx.drawImage(tempVideo, 0, 0, canvas.width, canvas.height);
+                    const posterDataUrl = canvas.toDataURL('image/jpeg');
+                    callback(posterDataUrl);
                 } catch (e) {
-                    // Fallback silently if CORS fails
+                    callback(null);
                 }
-                video.removeEventListener('seeked', onSeeked);
+                // Cleanup temp video element
+                tempVideo.removeAttribute('src');
+                tempVideo.load();
+                tempVideo.removeEventListener('seeked', onSeeked);
             });
 
-            video.src = videoUrl;
-            return video;
+            tempVideo.src = videoUrl;
         }
 
         async function fetchGalleryImages() {
@@ -1522,19 +1523,32 @@
                     miniThumb.onclick = () => openLightbox(index);
 
                     if (isVideo) {
-                        const video = createVideoWithPoster(file.download_url);
+                        const img = document.createElement('img');
+                        img.alt = 'Little Hands Henna Video Preview';
+                        img.loading = 'lazy';
+
+                        const miniImg = document.createElement('img');
+                        miniImg.alt = 'Little Hands Henna Video Preview';
+                        miniImg.loading = 'lazy';
 
                         const badge = document.createElement('div');
                         badge.className = 'video-badge';
                         badge.innerHTML = '▶';
 
-                        card.appendChild(video);
+                        card.appendChild(img);
                         card.appendChild(badge);
 
-                        const miniVideo = createVideoWithPoster(file.download_url);
                         const miniBadge = badge.cloneNode(true);
-                        miniThumb.appendChild(miniVideo);
+                        miniThumb.appendChild(miniImg);
                         miniThumb.appendChild(miniBadge);
+
+                        // Extract single poster frame and assign to both image tags
+                        generateSinglePoster(file.download_url, (posterUrl) => {
+                            if (posterUrl) {
+                                img.src = posterUrl;
+                                miniImg.src = posterUrl;
+                            }
+                        });
                     } else {
                         const img = document.createElement('img');
                         img.src = file.download_url;
