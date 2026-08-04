@@ -28,11 +28,28 @@ jobs:
       - name: Set up FFmpeg
         uses: FedericoCarboni/setup-ffmpeg@v3
 
-      - name: Rename Files to Timestamp Standard
+      - name: Cleanup Orphaned Video Thumbnails
         run: |
-          echo "=== Standardizing Filenames with Timestamp ==="
+          echo "=== Cleaning up Orphaned Thumbnails ==="
           
-          # Loop through all files except manifest.json and thumbnail images
+          # Find all existing _thumb.jpg files
+          find . -maxdepth 1 -type f -name '*_thumb.jpg' | while read -r thumb_path; do
+            thumb_file=$(basename "$thumb_path")
+            
+            # Extract original video filename by removing '_thumb.jpg'
+            original_video="${thumb_file%_thumb.jpg}"
+            
+            # If the original video no longer exists, delete the thumbnail
+            if [ ! -f "$original_video" ]; then
+              echo "--> Video '$original_video' deleted. Removing thumbnail '$thumb_file'..."
+              git rm "$thumb_file" 2>/dev/null || rm "$thumb_file"
+            fi
+          done
+
+      - name: Rename Files to Timestamp + Serial Standard
+        run: |
+          echo "=== Standardizing Filenames with Timestamp + Serial (_000) ==="
+          
           find . -maxdepth 1 -type f \
             ! -name 'manifest.json' \
             ! -name '*_thumb.jpg' \
@@ -42,21 +59,24 @@ jobs:
             ext="${filename##*.}"
             lower_ext=$(echo "$ext" | tr '[:upper:]' '[:lower:]')
             
-            # Extract file modification date as YYYYMMDD_HHMMSS
-            timestamp=$(date -r "$filepath" +"%Y%m%d_%H%M%S")
-            new_name="${timestamp}.${lower_ext}"
-            
-            # Skip if already named in YYYYMMDD_HHMMSS format
-            if [[ "$filename" =~ ^[0-9]{8}_[0-9]{6}\.[a-zA-Z0-9]+$ ]]; then
+            # Skip if already named in YYYYMMDD_HHMMSS_XXX.ext format
+            if [[ "$filename" =~ ^[0-9]{8}_[0-9]{6}_[0-9]{3}\.[a-zA-Z0-9]+$ ]]; then
               echo "--> Skipping $filename (already standardized)"
               continue
             fi
 
-            # Handle potential duplicate timestamp collisions
-            counter=1
+            # Extract file modification date as YYYYMMDD_HHMMSS
+            timestamp=$(date -r "$filepath" +"%Y%m%d_%H%M%S")
+            
+            # Find next available serial number starting at _000
+            serial=0
+            formatted_serial=$(printf "%03d" $serial)
+            new_name="${timestamp}_${formatted_serial}.${lower_ext}"
+            
             while [ -f "$new_name" ]; do
-              new_name="${timestamp}-${counter}.${lower_ext}"
-              counter=$((counter + 1))
+              serial=$((serial + 1))
+              formatted_serial=$(printf "%03d" $serial)
+              new_name="${timestamp}_${formatted_serial}.${lower_ext}"
             done
             
             echo "--> Renaming: '$filename' -> '$new_name'"
@@ -97,5 +117,5 @@ jobs:
           echo "=== Git Status before commit ==="
           git status
           
-          git commit -m "auto: standardize filenames, update manifest & video thumbnails [skip ci]" || exit 0
+          git commit -m "auto: cleanup deleted thumbs, standardize filenames, update manifest [skip ci]" || exit 0
           git push
