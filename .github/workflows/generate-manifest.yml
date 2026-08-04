@@ -25,16 +25,53 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Set up FFmpeg
+        uses: FedericoCarboni/setup-ffmpeg@v3
+
+      - name: Rename Files to Timestamp Standard
+        run: |
+          echo "=== Standardizing Filenames with Timestamp ==="
+          
+          # Loop through all files except manifest.json and thumbnail images
+          find . -maxdepth 1 -type f \
+            ! -name 'manifest.json' \
+            ! -name '*_thumb.jpg' \
+            \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" -o -iname "*.gif" -o -iname "*.mp4" -o -iname "*.mov" -o -iname "*.webm" \) | while read -r filepath; do
+            
+            filename=$(basename "$filepath")
+            ext="${filename##*.}"
+            lower_ext=$(echo "$ext" | tr '[:upper:]' '[:lower:]')
+            
+            # Extract file modification date as YYYYMMDD_HHMMSS
+            timestamp=$(date -r "$filepath" +"%Y%m%d_%H%M%S")
+            new_name="${timestamp}.${lower_ext}"
+            
+            # Skip if already named in YYYYMMDD_HHMMSS format
+            if [[ "$filename" =~ ^[0-9]{8}_[0-9]{6}\.[a-zA-Z0-9]+$ ]]; then
+              echo "--> Skipping $filename (already standardized)"
+              continue
+            fi
+
+            # Handle potential duplicate timestamp collisions
+            counter=1
+            while [ -f "$new_name" ]; do
+              new_name="${timestamp}-${counter}.${lower_ext}"
+              counter=$((counter + 1))
+            done
+            
+            echo "--> Renaming: '$filename' -> '$new_name'"
+            git mv "$filename" "$new_name" 2>/dev/null || mv "$filename" "$new_name"
+          done
+
       - name: Generate Video Thumbnails
         run: |
           echo "=== Scanning for video files in $(pwd) ==="
           
-          # Find all video files regardless of extension casing
           find . -maxdepth 1 -type f \( -iname "*.mp4" -o -iname "*.mov" -o -iname "*.webm" \) | while read -r video_path; do
             filename=$(basename "$video_path")
             thumb_name="${filename}_thumb.jpg"
             
-            echo "Processing: $filename"
+            echo "Processing video: $filename"
             
             if [ ! -f "$thumb_name" ]; then
               echo "--> Generating $thumb_name with ffmpeg..."
@@ -47,7 +84,6 @@ jobs:
       - name: Generate JSON Manifest
         run: |
           echo "=== Generating manifest.json ==="
-          # List all media files, exclude manifest.json and _thumb.jpg files
           ls -1 | grep -v 'manifest.json' | grep -v '_thumb.jpg' | grep -iE '\.(jpg|jpeg|png|webp|gif|mp4|mov|webm)$' | jq -R . | jq -s . > manifest.json
           cat manifest.json
 
@@ -56,12 +92,10 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Stage manifest and all generated thumbnail images
-          git add manifest.json
-          git add *_thumb.jpg 2>/dev/null || true
+          git add -A
           
           echo "=== Git Status before commit ==="
           git status
           
-          git commit -m "auto: update gallery manifest & video thumbnails [skip ci]" || exit 0
+          git commit -m "auto: standardize filenames, update manifest & video thumbnails [skip ci]" || exit 0
           git push
