@@ -117,5 +117,5 @@ jobs:
           echo "=== Git Status before commit ==="
           git status
           
-          git commit -m "auto: cleanup deleted thumbs, standardize filenames, update manifest [skip ci]" || exit 0
+          git commit -m "auto: update thumbs, filenames & manifest" || exit 0
           git push
