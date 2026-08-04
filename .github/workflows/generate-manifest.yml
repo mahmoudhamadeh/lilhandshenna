@@ -118,8 +118,6 @@ jobs:
           
           git add -A
           
-          echo "=== Git Status before commit ==="
-          git status
-          
-          git commit -m "auto: standardize filenames, cleanup old thumbs, update manifest [skip ci]" || exit 0
+          # Notice: [skip ci] removed so Cloudflare processes this commit!
+          git commit -m "auto: standardize filenames, cleanup old thumbs, update manifest" || exit 0
           git push
