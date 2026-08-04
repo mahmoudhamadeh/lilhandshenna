@@ -28,27 +28,9 @@ jobs:
       - name: Set up FFmpeg
         uses: FedericoCarboni/setup-ffmpeg@v3
 
-      - name: Cleanup Orphaned Video Thumbnails
+      - name: 1. Rename Raw Media Files to Timestamp Standard
         run: |
-          echo "=== Cleaning up Orphaned Thumbnails ==="
-          
-          # Find all existing _thumb.jpg files
-          find . -maxdepth 1 -type f -name '*_thumb.jpg' | while read -r thumb_path; do
-            thumb_file=$(basename "$thumb_path")
-            
-            # Extract original video filename by removing '_thumb.jpg'
-            original_video="${thumb_file%_thumb.jpg}"
-            
-            # If the original video no longer exists, delete the thumbnail
-            if [ ! -f "$original_video" ]; then
-              echo "--> Video '$original_video' deleted. Removing thumbnail '$thumb_file'..."
-              git rm "$thumb_file" 2>/dev/null || rm "$thumb_file"
-            fi
-          done
-
-      - name: Rename Files to Timestamp + Serial Standard
-        run: |
-          echo "=== Standardizing Filenames with Timestamp + Serial (_000) ==="
+          echo "=== Step 1: Standardizing Filenames with Timestamp + Serial (_000) ==="
           
           find . -maxdepth 1 -type f \
             ! -name 'manifest.json' \
@@ -83,9 +65,27 @@ jobs:
             git mv "$filename" "$new_name" 2>/dev/null || mv "$filename" "$new_name"
           done
 
-      - name: Generate Video Thumbnails
+      - name: 2. Cleanup Orphaned Video Thumbnails
         run: |
-          echo "=== Scanning for video files in $(pwd) ==="
+          echo "=== Step 2: Cleaning up Orphaned Thumbnails ==="
+          
+          # Runs AFTER renaming so old thumbnails whose original files were renamed get purged properly
+          find . -maxdepth 1 -type f -name '*_thumb.jpg' | while read -r thumb_path; do
+            thumb_file=$(basename "$thumb_path")
+            
+            # Extract original video filename by removing '_thumb.jpg'
+            original_video="${thumb_file%_thumb.jpg}"
+            
+            # If the original video no longer exists (deleted or renamed), purge the old thumbnail
+            if [ ! -f "$original_video" ]; then
+              echo "--> Video '$original_video' no longer exists. Deleting orphaned thumbnail '$thumb_file'..."
+              git rm "$thumb_file" 2>/dev/null || rm "$thumb_file"
+            fi
+          done
+
+      - name: 3. Generate Video Thumbnails
+        run: |
+          echo "=== Step 3: Generating Video Thumbnails ==="
           
           find . -maxdepth 1 -type f \( -iname "*.mp4" -o -iname "*.mov" -o -iname "*.webm" \) | while read -r video_path; do
             filename=$(basename "$video_path")
@@ -95,20 +95,24 @@ jobs:
             
             if [ ! -f "$thumb_name" ]; then
               echo "--> Generating $thumb_name with ffmpeg..."
-              ffmpeg -y -i "$filename" -ss 00:00:00.500 -vframes 1 -q:v 2 "$thumb_name" || ffmpeg -y -i "$filename" -vframes 1 -q:v 2 "$thumb_name"
+              # Fallback chain ending in echo guarantees zero non-zero exit code returns to set -e
+              ffmpeg -y -i "$filename" -ss 00:00:00.500 -vframes 1 -q:v 2 "$thumb_name" || \
+              ffmpeg -y -i "$filename" -vframes 1 -q:v 2 "$thumb_name" || \
+              echo "⚠️ Warning: FFmpeg could not process $filename (skipping thumbnail generation)"
             else
               echo "--> Thumbnail $thumb_name already exists."
             fi
           done
 
-      - name: Generate JSON Manifest
+      - name: 4. Generate JSON Manifest
         run: |
-          echo "=== Generating manifest.json ==="
+          echo "=== Step 4: Generating manifest.json ==="
           ls -1 | grep -v 'manifest.json' | grep -v '_thumb.jpg' | grep -iE '\.(jpg|jpeg|png|webp|gif|mp4|mov|webm)$' | jq -R . | jq -s . > manifest.json
           cat manifest.json
 
-      - name: Commit and Push
+      - name: 5. Commit and Push
         run: |
+          echo "=== Step 5: Committing Changes ==="
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
@@ -117,5 +121,5 @@ jobs:
           echo "=== Git Status before commit ==="
           git status
           
-          git commit -m "auto: update thumbs, filenames & manifest" || exit 0
+          git commit -m "auto: standardize filenames, cleanup old thumbs, update manifest [skip ci]" || exit 0
           git push
