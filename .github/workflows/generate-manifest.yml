@@ -41,16 +41,13 @@ jobs:
             ext="${filename##*.}"
             lower_ext=$(echo "$ext" | tr '[:upper:]' '[:lower:]')
             
-            # Skip if already named in YYYYMMDD_HHMMSS_XXX.ext format
             if [[ "$filename" =~ ^[0-9]{8}_[0-9]{6}_[0-9]{3}\.[a-zA-Z0-9]+$ ]]; then
               echo "--> Skipping $filename (already standardized)"
               continue
             fi
 
-            # Extract file modification date as YYYYMMDD_HHMMSS
             timestamp=$(date -r "$filepath" +"%Y%m%d_%H%M%S")
             
-            # Find next available serial number starting at _000
             serial=0
             formatted_serial=$(printf "%03d" $serial)
             new_name="${timestamp}_${formatted_serial}.${lower_ext}"
@@ -69,14 +66,10 @@ jobs:
         run: |
           echo "=== Step 2: Cleaning up Orphaned Thumbnails ==="
           
-          # Runs AFTER renaming so old thumbnails whose original files were renamed get purged properly
           find . -maxdepth 1 -type f -name '*_thumb.jpg' | while read -r thumb_path; do
             thumb_file=$(basename "$thumb_path")
-            
-            # Extract original video filename by removing '_thumb.jpg'
             original_video="${thumb_file%_thumb.jpg}"
             
-            # If the original video no longer exists (deleted or renamed), purge the old thumbnail
             if [ ! -f "$original_video" ]; then
               echo "--> Video '$original_video' no longer exists. Deleting orphaned thumbnail '$thumb_file'..."
               git rm "$thumb_file" 2>/dev/null || rm "$thumb_file"
@@ -95,7 +88,6 @@ jobs:
             
             if [ ! -f "$thumb_name" ]; then
               echo "--> Generating $thumb_name with ffmpeg..."
-              # Fallback chain ending in echo guarantees zero non-zero exit code returns to set -e
               ffmpeg -y -i "$filename" -ss 00:00:00.500 -vframes 1 -q:v 2 "$thumb_name" || \
               ffmpeg -y -i "$filename" -vframes 1 -q:v 2 "$thumb_name" || \
               echo "⚠️ Warning: FFmpeg could not process $filename (skipping thumbnail generation)"
@@ -118,6 +110,5 @@ jobs:
           
           git add -A
           
-          # Notice: [skip ci] removed so Cloudflare processes this commit!
           git commit -m "auto: standardize filenames, cleanup old thumbs, update manifest" || exit 0
           git push
