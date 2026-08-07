@@ -1654,10 +1654,29 @@
             }
         });
 
-        // Initial setup on load
+        // Initial setup on load - Supports /booking pathname, ?page=, and #hash routing
         document.addEventListener('DOMContentLoaded', () => {
-            const initialHash = window.location.hash.replace('#', '');
-            renderTab(initialHash || 'home');
+            const path = window.location.pathname.toLowerCase();
+            const urlParams = new URLSearchParams(window.location.search);
+            const pageParam = urlParams.get('page');
+            const hashParam = window.location.hash.replace('#', '');
+
+            let targetRoute = 'home';
+
+            // 1. Direct path matching (e.g. lilhandshenna.ca/booking)
+            if (path.includes('/booking')) {
+                targetRoute = 'booking-simple';
+            } 
+            // 2. Query param matching (e.g. ?page=booking-simple)
+            else if (pageParam) {
+                targetRoute = pageParam;
+            } 
+            // 3. Hash matching (e.g. #booking-simple)
+            else if (hashParam) {
+                targetRoute = hashParam;
+            }
+
+            renderTab(targetRoute);
             fetchGalleryImages();
         });
     </script>
